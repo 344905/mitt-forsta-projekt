@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A small browser-based arcade with two games for two fixed players, John (green) and Vera
-(magenta/purple), sharing a retro 80s/90s neon space look (pixel font, animated starfield, chunky
-box-shadow borders): **Luffarschack** (tic-tac-toe, best-of-5 series) and **Hänga gubbe**
+**Rymdarkaden** — a small browser-based arcade with two games for two fixed players, John (green)
+and Vera (magenta/purple), sharing a retro 80s/90s neon space look (pixel font, animated starfield,
+chunky box-shadow borders): **Luffarschack** (tic-tac-toe, best-of-5 series) and **Hänga gubbe**
 (Hangman, co-op letter-guessing). A game-picker screen (`screen-game-select`) is the app's entry
-point. This is the user's first-ever coding project — they are a complete beginner. When making
-changes, explain what's happening and why in plain terms rather than assuming familiarity with web
-dev concepts.
+point, and every screen in both games has a way back to it ("Byt spel"/back buttons) — don't add a
+screen without one. This is the user's first-ever coding project — they are a complete beginner.
+When making changes, explain what's happening and why in plain terms rather than assuming
+familiarity with web dev concepts.
 
 Plain HTML/CSS/JS with zero build step and zero npm dependencies — deliberately kept simple. It is
 also an installable PWA (manifest + service worker) deployed via GitHub Pages, so it can be added to
@@ -80,6 +81,31 @@ layout changes, check `document.documentElement.scrollWidth > window.innerWidth`
 width, not just visually — the Browser pane's screenshot tool scales/crops in ways that can make a
 real overflow bug look fine, or a fine layout look broken.
 
+Two more things that only show up as *vertical* overflow (scrolling required) rather than horizontal
+clipping, both fixed once already — don't reintroduce them:
+- `h1`, `h2`, and `p` need `margin: 0` (set globally near the top of `style.css`). Spacing between
+  elements is meant to come entirely from the flex `gap` on `.screen.active`; browser default margins
+  on headings/paragraphs silently stack on top of that gap and add up fast across a screen with many
+  stacked text elements (Hänga gubbe's screen has 6+).
+- Size things that can grow tall (Hänga gubbe's drawing) against viewport *height* too
+  (`min(180px, 50vw, 24vh)`), not just width — a width-only cap does nothing on a short-but-not-narrow
+  viewport.
+- Two result/action buttons side by side (`.result-actions`, shared by both games) need a smaller
+  `padding`/`font-size` override — at full `.primary-btn` size they don't fit on one row at 320px and
+  silently wrap to two, adding a whole extra row of height.
+
+### Other interaction gotchas fixed once, don't reintroduce
+
+- Luffarschack's `handlePointerDown`/`handlePointerUp` must check `event.button !== 0` — without it,
+  right-click (opening the context menu) and middle-click also place/move marks.
+- Hänga gubbe's physical-keyboard listener must ignore events with `ctrlKey`/`metaKey`/`altKey` set —
+  without that guard, Cmd+R (reload) or Ctrl+F (find) register as a guess of the letter R or F.
+- `updateCursorBlink()`'s `setInterval` must be stopped (`stopCursorBlink()`) whenever the game screen
+  is left or a round ends, not just restarted — an unstoppped interval keeps running indefinitely.
+- The exit button no longer closes immediately: it shows `screen-exit-confirm` first
+  (`screenBeforeExitConfirm` remembers where to return to on "Avbryt"). Don't make any button that
+  ends the session skip this confirmation.
+
 ### Luffarschack game rules (current, not what an older README/commit message might say)
 
 - Best-of-5 series, decided as soon as either player reaches 3 match wins (`WINS_NEEDED`).
@@ -103,8 +129,11 @@ real overflow bug look fine, or a fine layout look broken.
 
 - Co-op, not competitive: John and Vera take turns picking the next letter on the **same** word,
   alternating regardless of whether the guess was right or wrong (see `guessLetter()`).
-- 6 wrong guesses allowed (`MAX_WRONG_GUESSES`), matching the classic head/body/2 arms/2 legs figure
-  — each wrong guess reveals one more `.hm-part` element in the SVG.
+- 9 wrong guesses allowed (`MAX_WRONG_GUESSES`, derived from `HANGMAN_PARTS.length` — always keep it
+  derived, don't hardcode a number that can drift out of sync). The first 3 build the gallows itself
+  (post, crossbeam, rope), the remaining 6 build the body (head, body, 2 arms, 2 legs) — each wrong
+  guess reveals one more `.hm-part` element in the SVG, in `HANGMAN_PARTS` order. Only the ground line
+  is permanently visible (`.hm-gallows`); everything else starts hidden.
 - Same lesson as Luffarschack's win line: on win or loss, the word/drawing/keyboard stay visible and
   the result + "Nytt ord"/"Byt spel" buttons appear inline (`#hangman-result`) rather than switching
   screens; the keyboard just gets `disabled`.
