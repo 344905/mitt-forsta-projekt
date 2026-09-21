@@ -111,6 +111,21 @@ h2 {
   box-shadow: 0 0 0 3px var(--accent), 2px 2px 0 3px #000;
 }
 
+/* Röd variant för destruktiva/oåterkalleliga val, t.ex. "Ja, avsluta". */
+.danger-btn {
+  background: #2a0d10;
+  color: var(--danger-color);
+  box-shadow: 0 0 0 3px var(--danger-color), 4px 4px 0 3px #000;
+}
+
+.danger-btn:hover {
+  background: #3a1216;
+}
+
+.danger-btn:active {
+  box-shadow: 0 0 0 3px var(--danger-color), 2px 2px 0 3px #000;
+}
+
 .exit-btn {
   position: fixed;
   top: 16px;

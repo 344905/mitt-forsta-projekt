@@ -393,10 +393,24 @@ document.getElementById("select-hangman-btn").addEventListener("click", () => {
   });
 });
 
-// Avsluta-knappen: window.close() fungerar bara om webbläsaren tillåter det
-// (vanligtvis bara på flikar öppnade via script). Fallback: visa en tydlig
-// "du kan stänga fliken själv nu"-skärm om stängningen blockeras.
+// Avsluta-knappen frågar först en gång till — annars kan ett enda feltryck
+// mitt i spelet (eller ett barns nyfikna finger) avbryta allt utan förvarning.
+// Skärmen man stod på sparas undan så "Avbryt" kan ta en tillbaka dit.
+let screenBeforeExitConfirm = null;
+
 document.getElementById("exit-btn").addEventListener("click", () => {
+  screenBeforeExitConfirm = document.querySelector(".screen.active")?.id || "screen-game-select";
+  showScreen("screen-exit-confirm");
+});
+
+document.getElementById("exit-cancel-btn").addEventListener("click", () => {
+  showScreen(screenBeforeExitConfirm || "screen-game-select");
+});
+
+// window.close() fungerar bara om webbläsaren tillåter det (vanligtvis
+// bara på flikar öppnade via script). Fallback: visa en tydlig
+// "du kan stänga fliken själv nu"-skärm om stängningen blockeras.
+document.getElementById("exit-confirm-btn").addEventListener("click", () => {
   window.close();
   setTimeout(() => {
     showScreen("screen-goodbye");
