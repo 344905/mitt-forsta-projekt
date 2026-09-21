@@ -1,0 +1,210 @@
+:root {
+  --john-color: #39ff14;   /* neongrön */
+  --vera-color: #ff2bd6;   /* neonlila/magenta */
+  --accent: #00eaff;       /* neoncyan, används för ramar och rubriker */
+  --bg: #000000;
+  --panel-bg: #0d0d1a;
+  --text: #f2f2f2;
+  --pixel-font: "Press Start 2P", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--pixel-font);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* Stjärnhimlen ritas av stars.js, ligger fast bakom allt annat innehåll. */
+#starfield {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  margin: 24px;
+  padding: 32px 24px;
+  text-align: center;
+  background: var(--panel-bg);
+  border: 4px solid #000;
+  box-shadow:
+    0 0 0 4px var(--accent),
+    0 0 0 8px #000;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+h1, h2 {
+  color: var(--accent);
+  text-shadow: 0 0 6px var(--accent), 0 0 14px var(--accent);
+  letter-spacing: 1px;
+}
+
+h1 {
+  font-size: 1.3rem;
+}
+
+h2 {
+  font-size: 1rem;
+}
+
+/* Chunky "pixel"-knappar: två-tonad ram + liten "tryck ner"-effekt vid klick. */
+.primary-btn {
+  font-family: var(--pixel-font);
+  font-size: 0.8rem;
+  padding: 14px 24px;
+  border: none;
+  background: #1a1a2e;
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent), 4px 4px 0 3px #000;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #26264a;
+}
+
+.primary-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 3px var(--accent), 2px 2px 0 3px #000;
+}
+
+.exit-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  font-family: var(--pixel-font);
+  font-size: 0.65rem;
+  padding: 10px 14px;
+  border: none;
+  background: #2a0d10;
+  color: #ff5555;
+  box-shadow: 0 0 0 3px #ff5555, 3px 3px 0 3px #000;
+  cursor: pointer;
+}
+
+.exit-btn:hover {
+  background: #3a1216;
+}
+
+.exit-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 3px #ff5555, 1px 1px 0 3px #000;
+}
+
+.score-row {
+  display: flex;
+  gap: 24px;
+  font-size: 0.9rem;
+}
+
+.score.john {
+  color: var(--john-color);
+  text-shadow: 0 0 6px var(--john-color);
+}
+
+.score.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 6px var(--vera-color);
+}
+
+.turn-indicator {
+  font-size: 0.85rem;
+  min-height: 1.4em;
+}
+
+.turn-indicator.john {
+  color: var(--john-color);
+  text-shadow: 0 0 6px var(--john-color);
+}
+
+.turn-indicator.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 6px var(--vera-color);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 90px);
+  grid-template-rows: repeat(3, 90px);
+  gap: 10px;
+}
+
+.cell {
+  background: #05050c;
+  border: none;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 0 4px #000;
+  font-family: var(--pixel-font);
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.cell:disabled {
+  cursor: default;
+}
+
+.cell.john {
+  color: var(--john-color);
+  text-shadow: 0 0 10px var(--john-color);
+}
+
+.cell.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 10px var(--vera-color);
+}
+
+.round-result-text {
+  font-size: 1rem;
+}
+
+.winner-banner {
+  font-size: 1.4rem;
+  padding: 24px 16px;
+  animation: blink 0.8s infinite;
+}
+
+.winner-banner.john {
+  color: var(--john-color);
+  text-shadow: 0 0 10px var(--john-color), 0 0 24px var(--john-color);
+  box-shadow: 0 0 0 4px var(--john-color), 0 0 0 8px #000;
+}
+
+.winner-banner.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 10px var(--vera-color), 0 0 24px var(--vera-color);
+  box-shadow: 0 0 0 4px var(--vera-color), 0 0 0 8px #000;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}

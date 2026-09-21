@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luffarschack — John vs Vera</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <canvas id="starfield"></canvas>
+
+  <button id="exit-btn" class="exit-btn">Avsluta</button>
+
+  <div id="app">
+
+    <section id="screen-welcome" class="screen active">
+      <h1>Välkommen John och Vera!</h1>
+      <p>Vill ni börja spela?</p>
+      <p>Tryck start</p>
+      <button id="start-btn" class="primary-btn">Start</button>
+    </section>
+
+    <section id="screen-game" class="screen">
+      <h2 id="game-counter">Spel 1 av 5</h2>
+      <div class="score-row">
+        <span id="score-john" class="score john">John: 0</span>
+        <span id="score-vera" class="score vera">Vera: 0</span>
+      </div>
+      <p id="turn-indicator" class="turn-indicator"></p>
+      <div id="board" class="board"></div>
+    </section>
+
+    <section id="screen-round-result" class="screen">
+      <p id="round-result-text" class="round-result-text"></p>
+      <button id="next-round-btn" class="primary-btn">Nästa match</button>
+    </section>
+
+    <section id="screen-series-winner" class="screen">
+      <div id="winner-banner" class="winner-banner"></div>
+      <button id="continue-btn" class="primary-btn">Vidare</button>
+    </section>
+
+    <section id="screen-play-again" class="screen">
+      <p>Vill ni spela igen?</p>
+      <button id="play-again-btn" class="primary-btn">Ja, spela igen</button>
+    </section>
+
+    <section id="screen-goodbye" class="screen">
+      <p>Tack för att ni spelade!</p>
+      <p>Du kan nu stänga fliken/webbläsarfönstret.</p>
+    </section>
+
+  </div>
+
+  <script src="stars.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

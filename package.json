@@ -1,0 +1,9 @@
+{
+  "name": "luffarschack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Luffarschack (tre i rad) med bäst av 5-serie mellan John och Vera",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
