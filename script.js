@@ -79,6 +79,9 @@ function showScreen(id) {
   document.querySelectorAll(".screen").forEach((el) => {
     el.classList.toggle("active", el.id === id);
   });
+  // Luffarschackets blinkande pekare hör bara hemma på spelskärmen —
+  // annars fortsätter timern gå i bakgrunden resten av sidans livstid.
+  if (id !== "screen-game") stopCursorBlink();
 }
 
 // --- Bräde-UI byggs en gång ---
@@ -135,9 +138,13 @@ function renderPhaseHint() {
 // därmed ska dra en av dem istället) stannar pekaren i fullt sken.
 let cursorBlinkTimer = null;
 
-function updateCursorBlink() {
+function stopCursorBlink() {
   clearInterval(cursorBlinkTimer);
   boardEl.classList.remove("cursor-dim");
+}
+
+function updateCursorBlink() {
+  stopCursorBlink();
 
   if (isMovePhase(state.currentPlayer)) return; // dra-fas: pekaren är still
 
@@ -237,6 +244,9 @@ function clearDropHighlight() {
 // --- Steg 1: en bricka "plockas upp" (musen/fingret trycks ner) ---
 function handlePointerDown(index, event) {
   if (roundLocked) return;
+  // Bara vänsterklick (eller finger/penna) ska räknas — annars lägger
+  // ett högerklick ut en bricka samtidigt som menyn öppnas.
+  if (event.button !== 0) return;
   const player = state.currentPlayer;
   const ownMovablePiece = state.board[index] === player && isMovePhase(player);
 
@@ -261,6 +271,7 @@ function handlePointerMove(event) {
 // --- Steg 2: pekaren släpps — antingen ett riktig drag, eller bara en tryckning ---
 function handlePointerUp(index, event) {
   if (roundLocked) return;
+  if (event.button !== 0) return;
   boardEl.removeEventListener("pointermove", handlePointerMove);
   const endIndex = cellIndexFromPoint(event.clientX, event.clientY);
   clearDropHighlight();
@@ -334,6 +345,9 @@ function handleRoundWin(winner, winningLine) {
   drawWinLine(winningLine, winner);
   roundResultEl.classList.remove("hidden");
   roundLocked = true;
+  // Matchen är avgjord — ingen väntar på att göra ett drag, så pekaren
+  // ska sluta blinka (annars rullar timern vidare i onödan).
+  stopCursorBlink();
 }
 
 document.getElementById("next-round-btn").addEventListener("click", () => {
@@ -368,6 +382,15 @@ document.getElementById("select-tictactoe-btn").addEventListener("click", () => 
 
 document.getElementById("select-hangman-btn").addEventListener("click", () => {
   startNewHangmanRound();
+});
+
+// Vägar tillbaka till spelvalet. Sitter på lugna ställen (före start,
+// mellan matcher, efter avgjord serie) så man inte råkar trycka mitt i
+// ett pågående drag.
+["welcome-switch-btn", "round-switch-btn", "play-again-switch-btn", "goodbye-back-btn"].forEach((id) => {
+  document.getElementById(id).addEventListener("click", () => {
+    showScreen("screen-game-select");
+  });
 });
 
 // Avsluta-knappen: window.close() fungerar bara om webbläsaren tillåter det

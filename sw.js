@@ -2,7 +2,7 @@
 // gången sidan öppnas, så att spelet fungerar även utan internet sen.
 // CACHE_NAME höjs varje gång sparade filer ändras i grunden — det tvingar
 // gamla telefoner att kasta sin gamla cache och hämta allt på nytt.
-const CACHE_NAME = "luffarschack-v4";
+const CACHE_NAME = "luffarschack-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -42,9 +42,18 @@ self.addEventListener("fetch", (event) => {
     fetch(event.request, { cache: "no-store" })
       .then((response) => {
         const responseCopy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+        // Att spara i cachen är en bonus, inte ett krav — misslyckas det
+        // (t.ex. fullt lagringsutrymme) ska sidan ändå fungera.
+        caches
+          .open(CACHE_NAME)
+          .then((cache) => cache.put(event.request, responseCopy))
+          .catch(() => {});
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() =>
+        // Offline: använd den sparade kopian. Finns ingen sådan måste vi
+        // svara med ett riktigt fel — respondWith(undefined) kraschar.
+        caches.match(event.request).then((cached) => cached || Response.error())
+      )
   );
 });

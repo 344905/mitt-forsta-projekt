@@ -159,6 +159,9 @@ document.getElementById("hangman-switch-btn").addEventListener("click", () => {
 // Stöd för fysiskt tangentbord på dator, som ett komplement till
 // skärmtangentbordet (som alltid behövs för touch).
 window.addEventListener("keydown", (event) => {
+  // Hoppa över tangenttryck med Cmd/Ctrl/Alt — annars räknas t.ex.
+  // Cmd+R (ladda om sidan) som en gissning på bokstaven R.
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
   if (document.getElementById("screen-hangman-game").classList.contains("active")) {
     const letter = event.key.toUpperCase();
     if (ALPHABET.includes(letter)) {
