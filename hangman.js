@@ -103,7 +103,8 @@ function startNewHangmanRound() {
   hangmanState.word = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
   hangmanState.guessedLetters = [];
   hangmanState.wrongGuesses = 0;
-  hangmanState.currentPlayer = "John";
+  // Vem som gissar första bokstaven slumpas — annars är det alltid John.
+  hangmanState.currentPlayer = Math.random() < 0.5 ? "John" : "Vera";
   hangmanState.status = "playing";
   lastGuessedLetter = null;
 
