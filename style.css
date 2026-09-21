@@ -158,13 +158,26 @@ h2 {
   gap: 10px;
 }
 
+/* Muspekaren över brädet blir spelarens symbol i rätt neonfärg.
+   Måste också rikta ".cell" explicit — annars vinner rutornas egen
+   "cursor: pointer" över den ärvda pekaren och man ser den bara i
+   de smala mellanrummen mellan rutorna. */
+.board.john-turn,
+.board.john-turn .cell {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><path d="M5 5L23 23M23 5L5 23" stroke="%2339ff14" stroke-width="5" stroke-linecap="square"/></svg>') 14 14, pointer;
+}
+
+.board.vera-turn,
+.board.vera-turn .cell {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="9" fill="none" stroke="%23ff2bd6" stroke-width="5"/></svg>') 14 14, pointer;
+}
+
 .cell {
   background: #05050c;
   border: none;
   box-shadow: 0 0 0 3px var(--accent), 0 0 0 4px #000;
   font-family: var(--pixel-font);
   font-size: 2rem;
-  cursor: pointer;
   color: var(--text);
 }
 

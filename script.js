@@ -65,6 +65,8 @@ function renderScores() {
 function renderTurnIndicator() {
   turnIndicatorEl.textContent = `${state.currentPlayer}s tur`;
   turnIndicatorEl.className = `turn-indicator ${state.currentPlayer === "John" ? "john" : "vera"}`;
+  boardEl.classList.toggle("john-turn", state.currentPlayer === "John");
+  boardEl.classList.toggle("vera-turn", state.currentPlayer === "Vera");
 }
 
 function renderGameCounter() {
