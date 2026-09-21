@@ -227,6 +227,56 @@ h2 {
   -webkit-user-select: none;
 }
 
+/* Håller brädet och vinst-strecket staplade på varandra. */
+.board-wrap {
+  position: relative;
+}
+
+/* Strecket som dras genom de 3 vinnande brickorna. Ligger ovanpå
+   brädet men klickar man "igenom" det (pointer-events: none) så det
+   aldrig är i vägen. Dold (opacity 0) tills en match är vunnen. */
+.win-line-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.win-line-svg.visible {
+  opacity: 1;
+}
+
+#win-line {
+  stroke-width: 8;
+  stroke-linecap: square;
+}
+
+.win-line-svg.john #win-line {
+  stroke: var(--john-color);
+  filter: drop-shadow(0 0 6px var(--john-color));
+}
+
+.win-line-svg.vera #win-line {
+  stroke: var(--vera-color);
+  filter: drop-shadow(0 0 6px var(--vera-color));
+}
+
+/* Resultat-raden under brädet: syns bara när en match precis avgjorts. */
+.round-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.round-result.hidden {
+  display: none;
+}
+
 .cell:disabled {
   cursor: default;
 }

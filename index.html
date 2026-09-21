@@ -39,12 +39,16 @@
         <span id="phase-icon" class="phase-icon"></span>
         <span id="phase-text"></span>
       </div>
-      <div id="board" class="board"></div>
-    </section>
-
-    <section id="screen-round-result" class="screen">
-      <p id="round-result-text" class="round-result-text"></p>
-      <button id="next-round-btn" class="primary-btn">Nästa match</button>
+      <div class="board-wrap">
+        <div id="board" class="board"></div>
+        <svg id="win-line-svg" class="win-line-svg" viewBox="0 0 290 290">
+          <line id="win-line" x1="0" y1="0" x2="0" y2="0" />
+        </svg>
+      </div>
+      <div id="round-result" class="round-result hidden">
+        <p id="round-result-text" class="round-result-text"></p>
+        <button id="next-round-btn" class="primary-btn">Nästa match</button>
+      </div>
     </section>
 
     <section id="screen-series-winner" class="screen">

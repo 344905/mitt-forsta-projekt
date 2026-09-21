@@ -32,6 +32,10 @@ const state = {
 // Detta är bara tillfällig interaktionsdata, inte något som behöver sparas i state.
 let pointerDownIndex = null;
 
+// Sant precis efter att en match avgjorts, tills man trycker "Nästa match".
+// Då ska brädet visas (med vinst-strecket) men inte längre gå att klicka i.
+let roundLocked = false;
+
 // --- DOM-referenser ---
 const boardEl = document.getElementById("board");
 const gameCounterEl = document.getElementById("game-counter");
@@ -41,8 +45,11 @@ const turnIndicatorEl = document.getElementById("turn-indicator");
 const phaseHintEl = document.getElementById("phase-hint");
 const phaseIconEl = document.getElementById("phase-icon");
 const phaseTextEl = document.getElementById("phase-text");
+const roundResultEl = document.getElementById("round-result");
 const roundResultTextEl = document.getElementById("round-result-text");
 const winnerBannerEl = document.getElementById("winner-banner");
+const winLineSvgEl = document.getElementById("win-line-svg");
+const winLineEl = document.getElementById("win-line");
 
 // Enkla pixel-ikoner (SVG, ärver textfärgen via "currentColor") som visar
 // vilken fas spelaren är i, oberoende av text — så det funkar även för
@@ -131,6 +138,7 @@ function startNewRound() {
   state.board = Array(9).fill(null);
   state.selectedIndex = null;
   pointerDownIndex = null;
+  roundLocked = false;
   state.currentPlayer = state.nextStarter;
 
   buildBoardUI();
@@ -138,6 +146,8 @@ function startNewRound() {
   renderScores();
   renderTurnIndicator();
   renderGameCounter();
+  hideWinLine();
+  roundResultEl.classList.add("hidden");
   showScreen("screen-game");
 }
 
@@ -150,8 +160,32 @@ function startNewSeries() {
   startNewRound();
 }
 
-function checkWin(player) {
-  return WIN_LINES.some((line) => line.every((i) => state.board[i] === player));
+// Hittar den vinnande raden/kolumnen/diagonalen (om någon), t.ex. [0,1,2].
+function getWinningLine(player) {
+  return WIN_LINES.find((line) => line.every((i) => state.board[i] === player)) || null;
+}
+
+// Mittpunkten (i pixlar) för en ruta, används för att rita vinst-strecket.
+// Varje ruta är 90px + 10px mellanrum = 100px per "steg" i rutnätet.
+function cellCenter(index) {
+  const row = Math.floor(index / 3);
+  const col = index % 3;
+  return { x: col * 100 + 45, y: row * 100 + 45 };
+}
+
+function drawWinLine(line, player) {
+  const start = cellCenter(line[0]);
+  const end = cellCenter(line[2]);
+  winLineEl.setAttribute("x1", start.x);
+  winLineEl.setAttribute("y1", start.y);
+  winLineEl.setAttribute("x2", end.x);
+  winLineEl.setAttribute("y2", end.y);
+  winLineSvgEl.classList.remove("john", "vera");
+  winLineSvgEl.classList.add(player === "John" ? "john" : "vera", "visible");
+}
+
+function hideWinLine() {
+  winLineSvgEl.classList.remove("visible");
 }
 
 // Hur många brickor spelaren redan har på brädet.
@@ -185,6 +219,7 @@ function clearDropHighlight() {
 
 // --- Steg 1: en bricka "plockas upp" (musen/fingret trycks ner) ---
 function handlePointerDown(index, event) {
+  if (roundLocked) return;
   const player = state.currentPlayer;
   const ownMovablePiece = state.board[index] === player && isMovePhase(player);
 
@@ -208,6 +243,7 @@ function handlePointerMove(event) {
 
 // --- Steg 2: pekaren släpps — antingen ett riktig drag, eller bara en tryckning ---
 function handlePointerUp(index, event) {
+  if (roundLocked) return;
   boardEl.removeEventListener("pointermove", handlePointerMove);
   const endIndex = cellIndexFromPoint(event.clientX, event.clientY);
   clearDropHighlight();
@@ -261,8 +297,9 @@ function movePiece(fromIndex, toIndex) {
 function finishTurn(player) {
   renderBoard();
 
-  if (checkWin(player)) {
-    handleRoundWin(player);
+  const winningLine = getWinningLine(player);
+  if (winningLine) {
+    handleRoundWin(player, winningLine);
     return;
   }
 
@@ -270,12 +307,16 @@ function finishTurn(player) {
   renderTurnIndicator();
 }
 
-function handleRoundWin(winner) {
+function handleRoundWin(winner, winningLine) {
   state.scores[winner]++;
+  renderScores();
   roundResultTextEl.textContent = `${winner} vann match ${state.gameNumber}!`;
   // Förloraren av matchen börjar nästa match.
   state.nextStarter = winner === "John" ? "Vera" : "John";
-  showScreen("screen-round-result");
+
+  drawWinLine(winningLine, winner);
+  roundResultEl.classList.remove("hidden");
+  roundLocked = true;
 }
 
 document.getElementById("next-round-btn").addEventListener("click", () => {
