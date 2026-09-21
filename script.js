@@ -12,9 +12,26 @@ const WINS_NEEDED = 3; // bäst av 5 = först till 3 vinster
 // fungera offline. Fungerar bara över HTTPS eller på "localhost".
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {
-      // Går inte att registrera (t.ex. vanlig http:// på ett lokalt nätverk) — spelet funkar ändå, bara utan offline-stöd.
-    });
+    navigator.serviceWorker
+      .register("sw.js")
+      .then((registration) => {
+        // Fråga direkt om det finns en nyare sw.js, istället för att
+        // vänta på webbläsarens egen (mycket långsammare) schemaläggning.
+        registration.update();
+      })
+      .catch(() => {
+        // Går inte att registrera (t.ex. vanlig http:// på ett lokalt nätverk) — spelet funkar ändå, bara utan offline-stöd.
+      });
+  });
+
+  // Så fort en NY service worker tagit över (efter en uppdatering) laddas
+  // sidan om en gång, så man garanterat får matchande html/css/js — annars
+  // kan man annars fastna med gammal html ihop med ny kod, eller tvärtom.
+  let hasReloadedForUpdate = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hasReloadedForUpdate) return;
+    hasReloadedForUpdate = true;
+    window.location.reload();
   });
 }
 

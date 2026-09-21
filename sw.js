@@ -2,7 +2,7 @@
 // gången sidan öppnas, så att spelet fungerar även utan internet sen.
 // CACHE_NAME höjs varje gång sparade filer ändras i grunden — det tvingar
 // gamla telefoner att kasta sin gamla cache och hämta allt på nytt.
-const CACHE_NAME = "luffarschack-v2";
+const CACHE_NAME = "luffarschack-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -33,10 +33,12 @@ self.addEventListener("activate", (event) => {
 // Nätverk-först: hämta alltid senaste versionen när telefonen har
 // internet (och spara den nya kopian i cachen). Bara om nätverket
 // misslyckas (t.ex. offline) används den sparade kopian som reserv.
-// Så länge man har internet ser man alltså alltid senaste ändringarna.
+// "cache: no-store" är viktigt här — annars kan även fetch() i sig
+// få en gammal kopia från webbläsarens EGEN nätverkscache istället
+// för att faktiskt fråga servern på nytt.
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then((response) => {
         const responseCopy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
