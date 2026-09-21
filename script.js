@@ -8,6 +8,16 @@ const WIN_LINES = [
 const MAX_MARKS_PER_PLAYER = 3;
 const WINS_NEEDED = 3; // bäst av 5 = först till 3 vinster
 
+// Registrerar service workern (sw.js) så spelet kan installeras och
+// fungera offline. Fungerar bara över HTTPS eller på "localhost".
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      // Går inte att registrera (t.ex. vanlig http:// på ett lokalt nätverk) — spelet funkar ändå, bara utan offline-stöd.
+    });
+  });
+}
+
 // Allt spelets tillstånd samlat på ett ställe.
 const state = {
   board: Array(9).fill(null),
