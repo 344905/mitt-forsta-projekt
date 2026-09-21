@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Luffarschack — John vs Vera</title>
+  <title>Rymdarkaden — John & Vera</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -54,8 +54,10 @@
       </div>
       <div id="round-result" class="round-result hidden">
         <p id="round-result-text" class="round-result-text"></p>
-        <button id="next-round-btn" class="primary-btn">Nästa match</button>
-        <button id="round-switch-btn" class="primary-btn">Byt spel</button>
+        <div class="result-actions">
+          <button id="next-round-btn" class="primary-btn">Nästa match</button>
+          <button id="round-switch-btn" class="primary-btn">Byt spel</button>
+        </div>
       </div>
     </section>
 
@@ -81,12 +83,12 @@
       <p id="hangman-turn-indicator" class="turn-indicator"></p>
       <div class="hangman-drawing-wrap">
         <svg id="hangman-svg" class="hangman-svg" viewBox="0 0 200 220">
-          <!-- Galgen, alltid synlig -->
+          <!-- Marken, alltid synlig -->
           <line x1="20" y1="210" x2="120" y2="210" class="hm-gallows" />
-          <line x1="50" y1="210" x2="50" y2="20" class="hm-gallows" />
-          <line x1="50" y1="20" x2="140" y2="20" class="hm-gallows" />
-          <line x1="140" y1="20" x2="140" y2="45" class="hm-gallows" />
-          <!-- Kroppsdelar, visas en i taget vid felgissningar -->
+          <!-- Galgen och kroppen byggs upp en del i taget vid felgissningar -->
+          <line id="hm-post" class="hm-part" x1="50" y1="210" x2="50" y2="20" />
+          <line id="hm-beam" class="hm-part" x1="50" y1="20" x2="140" y2="20" />
+          <line id="hm-rope" class="hm-part" x1="140" y1="20" x2="140" y2="45" />
           <circle id="hm-head" class="hm-part" cx="140" cy="60" r="15" />
           <line id="hm-body" class="hm-part" x1="140" y1="75" x2="140" y2="130" />
           <line id="hm-arm-left" class="hm-part" x1="140" y1="90" x2="115" y2="110" />
@@ -99,7 +101,7 @@
       <div id="hangman-keyboard" class="hangman-keyboard"></div>
       <div id="hangman-result" class="round-result hidden">
         <p id="hangman-result-text" class="round-result-text"></p>
-        <div class="hangman-result-actions">
+        <div class="result-actions">
           <button id="hangman-again-btn" class="primary-btn">Nytt ord</button>
           <button id="hangman-switch-btn" class="primary-btn">Byt spel</button>
         </div>

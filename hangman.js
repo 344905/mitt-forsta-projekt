@@ -16,8 +16,13 @@ const WORDS = [
 ];
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ".split("");
-const MAX_WRONG_GUESSES = 6;
-const HANGMAN_PARTS = ["hm-head", "hm-body", "hm-arm-left", "hm-arm-right", "hm-leg-left", "hm-leg-right"];
+// Första 3 felen bygger själva galgen (stolpe, överligg, rep), resten
+// bygger upp kroppen — 9 fel totalt innan man förlorar.
+const HANGMAN_PARTS = [
+  "hm-post", "hm-beam", "hm-rope",
+  "hm-head", "hm-body", "hm-arm-left", "hm-arm-right", "hm-leg-left", "hm-leg-right",
+];
+const MAX_WRONG_GUESSES = HANGMAN_PARTS.length;
 
 const hangmanState = {
   word: "",

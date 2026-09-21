@@ -1,8 +1,8 @@
 {
-  "name": "luffarschack",
+  "name": "rymdarkaden",
   "version": "1.0.0",
   "private": true,
-  "description": "Luffarschack (tre i rad) med bäst av 5-serie mellan John och Vera",
+  "description": "Rymdarkaden — Luffarschack och Hänga gubbe för John och Vera",
   "scripts": {
     "start": "node server.js"
   }
