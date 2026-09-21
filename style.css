@@ -392,11 +392,36 @@ h2 {
 }
 
 .hangman-word {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
   font-size: clamp(1rem, 6vw, 1.4rem);
-  letter-spacing: 4px;
+}
+
+.hangman-letter {
+  display: inline-block;
+  min-width: 0.9em;
   color: var(--accent);
+  opacity: 0.35;
+}
+
+.hangman-letter.revealed {
+  opacity: 1;
   text-shadow: 0 0 6px var(--accent);
-  word-break: break-word;
+}
+
+/* Bekräftar visuellt VILKEN bokstav som precis dök upp, inte bara att
+   den gjorde det — samma bokstav kan finnas flera gånger i ordet
+   (t.ex. "MAMMA") och då poppar alla förekomster till samtidigt. */
+.hangman-letter.pop {
+  animation: hangman-letter-pop 0.4s ease;
+}
+
+@keyframes hangman-letter-pop {
+  0% { transform: scale(0.4); opacity: 0.3; }
+  60% { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 /* Skärmtangentbord: auto-fill håller det responsivt istället för fasta
@@ -426,6 +451,24 @@ h2 {
 .hangman-key:disabled {
   opacity: 0.25;
   cursor: default;
+}
+
+/* Bokstaven man faktiskt tryckte på förblir tydlig och färgas efter
+   utfallet — cyan för rätt, röd för fel — istället för att bara tonas
+   ner som alla andra redan gissade bokstäver. Så syns VILKEN bokstav
+   man valde och om den var rätt eller fel på exakt samma knapp.
+   Cyan/röd valdes istället för grönt/rött för att vara tydligare även
+   för färgblinda (grönt/rött är ett klassiskt svårt par). */
+.hangman-key.correct {
+  opacity: 1;
+  color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 0 3px #000, 0 0 8px var(--accent);
+}
+
+.hangman-key.wrong {
+  opacity: 1;
+  color: var(--danger-color);
+  box-shadow: 0 0 0 2px var(--danger-color), 0 0 0 3px #000;
 }
 
 .hangman-result-actions {

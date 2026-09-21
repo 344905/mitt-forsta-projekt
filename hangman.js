@@ -27,6 +27,11 @@ const hangmanState = {
   status: "playing", // "playing" | "won" | "lost"
 };
 
+// Vilken bokstav som senast gissades — bara till för att veta vilken
+// bokstav i ordet som ska "poppa till" som visuell bekräftelse. Ingen
+// spellogik beror på den, så den behöver inte vara del av hangmanState.
+let lastGuessedLetter = null;
+
 // --- DOM-referenser ---
 const hangmanTurnIndicatorEl = document.getElementById("hangman-turn-indicator");
 const hangmanWordEl = document.getElementById("hangman-word");
@@ -53,10 +58,18 @@ function renderHangmanTurnIndicator() {
 }
 
 function renderHangmanWord() {
-  hangmanWordEl.textContent = hangmanState.word
-    .split("")
-    .map((letter) => (hangmanState.guessedLetters.includes(letter) ? letter : "_"))
-    .join(" ");
+  hangmanWordEl.innerHTML = "";
+  hangmanState.word.split("").forEach((letter) => {
+    const span = document.createElement("span");
+    span.className = "hangman-letter";
+    const revealed = hangmanState.guessedLetters.includes(letter);
+    span.textContent = revealed ? letter : "_";
+    if (revealed) {
+      span.classList.add("revealed");
+      if (letter === lastGuessedLetter) span.classList.add("pop");
+    }
+    hangmanWordEl.appendChild(span);
+  });
 }
 
 function renderHangmanDrawing() {
@@ -68,7 +81,15 @@ function renderHangmanDrawing() {
 function renderHangmanKeyboard() {
   hangmanKeyboardEl.querySelectorAll(".hangman-key").forEach((key) => {
     const letter = key.dataset.letter;
-    key.disabled = hangmanState.guessedLetters.includes(letter) || hangmanState.status !== "playing";
+    const guessed = hangmanState.guessedLetters.includes(letter);
+    key.disabled = guessed || hangmanState.status !== "playing";
+    key.classList.remove("correct", "wrong");
+    // Färgar knappen man faktiskt tryckte på — rätt (cyan) eller fel (röd)
+    // — så man ser bokstaven OCH utfallet på samma ställe, inte bara att
+    // den blivit nedtonad.
+    if (guessed) {
+      key.classList.add(hangmanState.word.includes(letter) ? "correct" : "wrong");
+    }
   });
 }
 
@@ -79,6 +100,7 @@ function startNewHangmanRound() {
   hangmanState.wrongGuesses = 0;
   hangmanState.currentPlayer = "John";
   hangmanState.status = "playing";
+  lastGuessedLetter = null;
 
   buildHangmanKeyboard();
   renderHangmanTurnIndicator();
@@ -93,6 +115,7 @@ function guessLetter(letter) {
   if (hangmanState.status !== "playing") return;
   if (hangmanState.guessedLetters.includes(letter)) return;
 
+  lastGuessedLetter = letter;
   hangmanState.guessedLetters.push(letter);
 
   if (!hangmanState.word.includes(letter)) {
