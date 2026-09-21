@@ -151,6 +151,31 @@ h2 {
   text-shadow: 0 0 6px var(--vera-color);
 }
 
+/* Ikon + text som visar om man ska lägga ut en ny bricka eller dra en
+   befintlig. Fungerar på både mus och touch, till skillnad från den
+   blinkande muspekaren, och hjälper spelare som inte kan läsa än. */
+.phase-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  margin-top: -8px;
+}
+
+.phase-icon svg {
+  display: block;
+}
+
+.phase-hint.john {
+  color: var(--john-color);
+  text-shadow: 0 0 6px var(--john-color);
+}
+
+.phase-hint.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 6px var(--vera-color);
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, 90px);

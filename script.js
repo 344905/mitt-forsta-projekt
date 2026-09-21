@@ -38,8 +38,17 @@ const gameCounterEl = document.getElementById("game-counter");
 const scoreJohnEl = document.getElementById("score-john");
 const scoreVeraEl = document.getElementById("score-vera");
 const turnIndicatorEl = document.getElementById("turn-indicator");
+const phaseHintEl = document.getElementById("phase-hint");
+const phaseIconEl = document.getElementById("phase-icon");
+const phaseTextEl = document.getElementById("phase-text");
 const roundResultTextEl = document.getElementById("round-result-text");
 const winnerBannerEl = document.getElementById("winner-banner");
+
+// Enkla pixel-ikoner (SVG, ärver textfärgen via "currentColor") som visar
+// vilken fas spelaren är i, oberoende av text — så det funkar även för
+// den som inte kan läsa än.
+const PLACE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M12 4v16M4 12h16"/></svg>';
+const MOVE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><polyline points="9,5 12,2 15,5"/><polyline points="9,19 12,22 15,19"/><polyline points="5,9 2,12 5,15"/><polyline points="19,9 22,12 19,15"/></svg>';
 
 // --- Skärmhantering ---
 function showScreen(id) {
@@ -84,6 +93,17 @@ function renderTurnIndicator() {
   boardEl.classList.toggle("john-turn", state.currentPlayer === "John");
   boardEl.classList.toggle("vera-turn", state.currentPlayer === "Vera");
   updateCursorBlink();
+  renderPhaseHint();
+}
+
+// Visar ikon + text för om spelaren ska lägga ut en ny bricka
+// eller dra en befintlig — syns på både mus och touch.
+function renderPhaseHint() {
+  const player = state.currentPlayer;
+  const moving = isMovePhase(player);
+  phaseIconEl.innerHTML = moving ? MOVE_ICON : PLACE_ICON;
+  phaseTextEl.textContent = moving ? "Dra en bricka" : "Lägg ut";
+  phaseHintEl.className = `phase-hint ${player === "John" ? "john" : "vera"}`;
 }
 
 // Låter musens pekare blinka långsamt så länge spelaren fortfarande
