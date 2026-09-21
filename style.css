@@ -156,6 +156,9 @@ h2 {
   grid-template-columns: repeat(3, 90px);
   grid-template-rows: repeat(3, 90px);
   gap: 10px;
+  /* Stänger av webbläsarens egna scroll/zoom-gester på brädet, så att
+     dra-rörelser med fingret tolkas som spel-drag istället. */
+  touch-action: none;
 }
 
 /* Muspekaren över brädet blir spelarens symbol i rätt neonfärg.
@@ -179,10 +182,33 @@ h2 {
   font-family: var(--pixel-font);
   font-size: 2rem;
   color: var(--text);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .cell:disabled {
   cursor: default;
+}
+
+/* Brickan som just nu "hålls" medan man drar den. */
+.cell.dragging {
+  opacity: 0.35;
+}
+
+/* Rutan pekaren svävar över just nu under ett drag. */
+.cell.drop-target {
+  box-shadow: 0 0 0 4px #ffffff, 0 0 0 5px #000;
+}
+
+/* En bricka som är vald i två-tryck-läget (tryckt en gång, väntar på destination). */
+.cell.selected {
+  animation: select-pulse 0.8s infinite;
+}
+
+@keyframes select-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent), 0 0 0 4px #000; }
+  50% { box-shadow: 0 0 0 4px #ffffff, 0 0 0 5px #000; }
 }
 
 .cell.john {

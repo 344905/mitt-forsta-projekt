@@ -22,11 +22,15 @@ if ("serviceWorker" in navigator) {
 const state = {
   board: Array(9).fill(null),
   currentPlayer: "John",
-  moveHistory: { John: [], Vera: [] },
   scores: { John: 0, Vera: 0 },
   gameNumber: 1,
   nextStarter: "John", // vem som ska börja nästa match
+  selectedIndex: null, // rutan för en bricka som är "plockad upp" och väntar på en destination
 };
+
+// Håller reda på var ett drag startade medan pekaren fortfarande är nedtryckt.
+// Detta är bara tillfällig interaktionsdata, inte något som behöver sparas i state.
+let pointerDownIndex = null;
 
 // --- DOM-referenser ---
 const boardEl = document.getElementById("board");
@@ -51,7 +55,8 @@ function buildBoardUI() {
     const cell = document.createElement("button");
     cell.className = "cell";
     cell.dataset.index = i;
-    cell.addEventListener("click", () => handleCellClick(i));
+    cell.addEventListener("pointerdown", (e) => handlePointerDown(i, e));
+    cell.addEventListener("pointerup", (e) => handlePointerUp(i, e));
     boardEl.appendChild(cell);
   }
 }
@@ -61,9 +66,10 @@ function renderBoard() {
   cells.forEach((cell, i) => {
     const mark = state.board[i];
     cell.textContent = mark ? (mark === "John" ? "X" : "O") : "";
-    cell.classList.remove("john", "vera");
+    cell.classList.remove("john", "vera", "selected");
     if (mark === "John") cell.classList.add("john");
     if (mark === "Vera") cell.classList.add("vera");
+    if (state.selectedIndex === i) cell.classList.add("selected");
   });
 }
 
@@ -86,7 +92,8 @@ function renderGameCounter() {
 // --- Ny match (nollställer bräde, behåller serie-poäng) ---
 function startNewRound() {
   state.board = Array(9).fill(null);
-  state.moveHistory = { John: [], Vera: [] };
+  state.selectedIndex = null;
+  pointerDownIndex = null;
   state.currentPlayer = state.nextStarter;
 
   buildBoardUI();
@@ -110,21 +117,111 @@ function checkWin(player) {
   return WIN_LINES.some((line) => line.every((i) => state.board[i] === player));
 }
 
-function handleCellClick(index) {
-  if (state.board[index] !== null) return; // rutan är redan tagen
+// Hur många brickor spelaren redan har på brädet.
+function markCount(player) {
+  return state.board.filter((mark) => mark === player).length;
+}
 
+// När en spelare redan har 3 brickor ute måste de flytta en av dem
+// istället för att placera en ny — annars skulle brädet bara fyllas på.
+function isMovePhase(player) {
+  return markCount(player) >= MAX_MARKS_PER_PLAYER;
+}
+
+// Hittar vilken ruta (index) som ligger under en given skärmkoordinat.
+// Används för att avgöra var pekaren/fingret faktiskt släpptes.
+function cellIndexFromPoint(x, y) {
+  const el = document.elementFromPoint(x, y);
+  const cell = el ? el.closest(".cell") : null;
+  return cell ? Number(cell.dataset.index) : null;
+}
+
+function setDropHighlight(index) {
+  boardEl.querySelectorAll(".cell").forEach((cell, i) => {
+    cell.classList.toggle("drop-target", i === index && state.board[i] === null);
+  });
+}
+
+function clearDropHighlight() {
+  boardEl.querySelectorAll(".cell").forEach((cell) => cell.classList.remove("drop-target", "dragging"));
+}
+
+// --- Steg 1: en bricka "plockas upp" (musen/fingret trycks ner) ---
+function handlePointerDown(index, event) {
   const player = state.currentPlayer;
-  const history = state.moveHistory[player];
+  const ownMovablePiece = state.board[index] === player && isMovePhase(player);
 
-  // "Rullande brickor": har spelaren redan 3 på brädet, tas den äldsta bort.
-  if (history.length >= MAX_MARKS_PER_PLAYER) {
-    const oldestIndex = history.shift();
-    state.board[oldestIndex] = null;
+  if (!ownMovablePiece) {
+    pointerDownIndex = null;
+    return;
   }
 
-  state.board[index] = player;
-  history.push(index);
+  pointerDownIndex = index;
+  event.currentTarget.classList.add("dragging");
+  event.currentTarget.setPointerCapture(event.pointerId);
+  boardEl.addEventListener("pointermove", handlePointerMove);
+}
 
+// --- Under tiden pekaren dras: visa vilken ruta som är ett giltigt mål ---
+function handlePointerMove(event) {
+  if (pointerDownIndex === null) return;
+  const hovered = cellIndexFromPoint(event.clientX, event.clientY);
+  setDropHighlight(hovered);
+}
+
+// --- Steg 2: pekaren släpps — antingen ett riktig drag, eller bara en tryckning ---
+function handlePointerUp(index, event) {
+  boardEl.removeEventListener("pointermove", handlePointerMove);
+  const endIndex = cellIndexFromPoint(event.clientX, event.clientY);
+  clearDropHighlight();
+
+  if (pointerDownIndex !== null) {
+    const startIndex = pointerDownIndex;
+    pointerDownIndex = null;
+
+    if (endIndex !== null && endIndex !== startIndex && state.board[endIndex] === null) {
+      // Ett fullständigt drag: släpptes på en tom ruta -> flytta dit.
+      movePiece(startIndex, endIndex);
+    } else if (endIndex === startIndex) {
+      // Ingen förflyttning skedde -> tolka det som en tryckning: markera/avmarkera
+      // brickan så man kan trycka på en destination separat istället (två-tryck-läge).
+      state.selectedIndex = state.selectedIndex === startIndex ? null : startIndex;
+      renderBoard();
+    }
+    return;
+  }
+
+  if (state.selectedIndex !== null) {
+    // En bricka var redan markerad sedan tidigare -> det här är destinationen.
+    if (state.board[index] === null) {
+      movePiece(state.selectedIndex, index);
+    } else {
+      state.selectedIndex = null;
+      renderBoard();
+    }
+    return;
+  }
+
+  // Vanlig placering: spelaren har fortfarande färre än 3 brickor ute.
+  if (state.board[index] === null && !isMovePhase(state.currentPlayer)) {
+    placeMark(index);
+  }
+}
+
+function placeMark(index) {
+  state.board[index] = state.currentPlayer;
+  finishTurn(state.currentPlayer);
+}
+
+function movePiece(fromIndex, toIndex) {
+  const player = state.board[fromIndex];
+  state.board[toIndex] = player;
+  state.board[fromIndex] = null;
+  state.selectedIndex = null;
+  finishTurn(player);
+}
+
+function finishTurn(player) {
   renderBoard();
 
   if (checkWin(player)) {
