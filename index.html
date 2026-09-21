@@ -21,7 +21,13 @@
 
   <div id="app">
 
-    <section id="screen-welcome" class="screen active">
+    <section id="screen-game-select" class="screen active">
+      <h1>Välj spel</h1>
+      <button id="select-tictactoe-btn" class="primary-btn">Luffarschack</button>
+      <button id="select-hangman-btn" class="primary-btn">Hänga gubbe</button>
+    </section>
+
+    <section id="screen-welcome" class="screen">
       <h1>Välkommen John och Vera!</h1>
       <p>Vill ni börja spela?</p>
       <p>Tryck start</p>
@@ -66,9 +72,40 @@
       <p>Du kan nu stänga fliken/webbläsarfönstret.</p>
     </section>
 
+    <section id="screen-hangman-game" class="screen">
+      <h2>Hänga gubbe</h2>
+      <p id="hangman-turn-indicator" class="turn-indicator"></p>
+      <div class="hangman-drawing-wrap">
+        <svg id="hangman-svg" class="hangman-svg" viewBox="0 0 200 220">
+          <!-- Galgen, alltid synlig -->
+          <line x1="20" y1="210" x2="120" y2="210" class="hm-gallows" />
+          <line x1="50" y1="210" x2="50" y2="20" class="hm-gallows" />
+          <line x1="50" y1="20" x2="140" y2="20" class="hm-gallows" />
+          <line x1="140" y1="20" x2="140" y2="45" class="hm-gallows" />
+          <!-- Kroppsdelar, visas en i taget vid felgissningar -->
+          <circle id="hm-head" class="hm-part" cx="140" cy="60" r="15" />
+          <line id="hm-body" class="hm-part" x1="140" y1="75" x2="140" y2="130" />
+          <line id="hm-arm-left" class="hm-part" x1="140" y1="90" x2="115" y2="110" />
+          <line id="hm-arm-right" class="hm-part" x1="140" y1="90" x2="165" y2="110" />
+          <line id="hm-leg-left" class="hm-part" x1="140" y1="130" x2="120" y2="160" />
+          <line id="hm-leg-right" class="hm-part" x1="140" y1="130" x2="160" y2="160" />
+        </svg>
+      </div>
+      <p id="hangman-word" class="hangman-word"></p>
+      <div id="hangman-keyboard" class="hangman-keyboard"></div>
+      <div id="hangman-result" class="round-result hidden">
+        <p id="hangman-result-text" class="round-result-text"></p>
+        <div class="hangman-result-actions">
+          <button id="hangman-again-btn" class="primary-btn">Nytt ord</button>
+          <button id="hangman-switch-btn" class="primary-btn">Byt spel</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script src="stars.js"></script>
   <script src="script.js"></script>
+  <script src="hangman.js"></script>
 </body>
 </html>

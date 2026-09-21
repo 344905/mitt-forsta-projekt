@@ -360,6 +360,16 @@ document.getElementById("start-btn").addEventListener("click", () => {
   startNewSeries();
 });
 
+// Spelval — vilket av de två spelen man vill öppna. Hänga gubbes egen
+// startlogik (startNewHangmanRound) ligger i hangman.js.
+document.getElementById("select-tictactoe-btn").addEventListener("click", () => {
+  showScreen("screen-welcome");
+});
+
+document.getElementById("select-hangman-btn").addEventListener("click", () => {
+  startNewHangmanRound();
+});
+
 // Avsluta-knappen: window.close() fungerar bara om webbläsaren tillåter det
 // (vanligtvis bara på flikar öppnade via script). Fallback: visa en tydlig
 // "du kan stänga fliken själv nu"-skärm om stängningen blockeras.
