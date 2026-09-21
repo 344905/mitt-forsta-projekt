@@ -175,6 +175,21 @@ h2 {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="9" fill="none" stroke="%23ff2bd6" stroke-width="5"/></svg>') 14 14, pointer;
 }
 
+/* Under placeringsfasen (färre än 3 brickor ute) blinkar pekaren långsamt
+   mellan full styrka och nedtonad, för att visa att man håller på att
+   lägga ut nya brickor. Under dra-fasen (3 brickor ute) är den still —
+   klassen "cursor-dim" togglas av script.js med setInterval.
+   OBS: syns bara med mus, en touch-pekare visas aldrig av webbläsaren. */
+.board.john-turn.cursor-dim,
+.board.john-turn.cursor-dim .cell {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><path d="M5 5L23 23M23 5L5 23" stroke="%2339ff14" stroke-width="5" stroke-linecap="square" opacity="0.3"/></svg>') 14 14, pointer;
+}
+
+.board.vera-turn.cursor-dim,
+.board.vera-turn.cursor-dim .cell {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="9" fill="none" stroke="%23ff2bd6" stroke-width="5" opacity="0.3"/></svg>') 14 14, pointer;
+}
+
 .cell {
   background: #05050c;
   border: none;

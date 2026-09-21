@@ -83,6 +83,23 @@ function renderTurnIndicator() {
   turnIndicatorEl.className = `turn-indicator ${state.currentPlayer === "John" ? "john" : "vera"}`;
   boardEl.classList.toggle("john-turn", state.currentPlayer === "John");
   boardEl.classList.toggle("vera-turn", state.currentPlayer === "Vera");
+  updateCursorBlink();
+}
+
+// Låter musens pekare blinka långsamt så länge spelaren fortfarande
+// placerar ut nya brickor. Så fort spelaren har 3 brickor ute (och
+// därmed ska dra en av dem istället) stannar pekaren i fullt sken.
+let cursorBlinkTimer = null;
+
+function updateCursorBlink() {
+  clearInterval(cursorBlinkTimer);
+  boardEl.classList.remove("cursor-dim");
+
+  if (isMovePhase(state.currentPlayer)) return; // dra-fas: pekaren är still
+
+  cursorBlinkTimer = setInterval(() => {
+    boardEl.classList.toggle("cursor-dim");
+  }, 500);
 }
 
 function renderGameCounter() {
