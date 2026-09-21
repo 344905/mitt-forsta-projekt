@@ -1,6 +1,8 @@
 // Service worker: sparar alla spelets filer i telefonens cache första
 // gången sidan öppnas, så att spelet fungerar även utan internet sen.
-const CACHE_NAME = "luffarschack-v1";
+// CACHE_NAME höjs varje gång sparade filer ändras i grunden — det tvingar
+// gamla telefoner att kasta sin gamla cache och hämta allt på nytt.
+const CACHE_NAME = "luffarschack-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -28,8 +30,18 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Nätverk-först: hämta alltid senaste versionen när telefonen har
+// internet (och spara den nya kopian i cachen). Bara om nätverket
+// misslyckas (t.ex. offline) används den sparade kopian som reserv.
+// Så länge man har internet ser man alltså alltid senaste ändringarna.
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const responseCopy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
