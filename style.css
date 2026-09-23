@@ -377,6 +377,78 @@ h2 {
   50% { opacity: 0.15; }
 }
 
+/* ---------- Introskärm ---------- */
+
+.intro-sprites {
+  display: flex;
+  gap: clamp(12px, 4vw, 24px);
+  justify-content: center;
+}
+
+.intro-sprite-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* "Hoppar in" när sidan laddas — Vera och John poppar upp lite
+     förskjutet efter varandra istället för samtidigt. */
+  animation: intro-pop-in 0.5s ease-out both;
+}
+
+.intro-sprite-block-john {
+  animation-delay: 0.15s;
+}
+
+@keyframes intro-pop-in {
+  0% { transform: scale(0.3) translateY(24px); opacity: 0; }
+  70% { transform: scale(1.1) translateY(0); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Egen (vanlig) monospace-font istället för pixel-fonten här — annars
+   ligger inte tecknen exakt lika breda och tecken-konsten skevar.
+   Fotobaserad ASCII-konst har många rader (~34) så font-storleken måste
+   begränsas av både bredd OCH höjd (min(...vw, ...vh)) — annars blir
+   bilden för hög och tvingar fram vertikal scroll på korta skärmar,
+   samma fälla som beskrivs för Hänga gubbes teckning. */
+.intro-sprite {
+  margin: 0;
+  font-family: monospace;
+  line-height: 1;
+  font-size: clamp(3px, min(2.2vw, 1.6vh), 7px);
+  white-space: pre;
+}
+
+.intro-sprite.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 6px var(--vera-color);
+}
+
+.intro-sprite.john {
+  color: var(--john-color);
+  text-shadow: 0 0 6px var(--john-color);
+}
+
+.intro-name {
+  font-size: 0.65rem;
+}
+
+.intro-name.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 6px var(--vera-color);
+}
+
+.intro-name.john {
+  color: var(--john-color);
+  text-shadow: 0 0 6px var(--john-color);
+}
+
+.intro-hint {
+  font-size: 0.6rem;
+  color: var(--accent);
+  animation: blink 1.2s infinite;
+}
+
 /* ---------- Hänga gubbe ---------- */
 
 /* Samma teknik som .board-wrap: storleken sätts på wrappern, inte på

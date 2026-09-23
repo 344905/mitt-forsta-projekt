@@ -21,7 +21,22 @@
 
   <div id="app">
 
-    <section id="screen-game-select" class="screen active">
+    <section id="screen-intro" class="screen active">
+      <h1>Rymdarkaden</h1>
+      <div class="intro-sprites">
+        <div class="intro-sprite-block intro-sprite-block-vera">
+          <pre id="intro-sprite-vera" class="intro-sprite vera"></pre>
+          <p class="intro-name vera">VERA</p>
+        </div>
+        <div class="intro-sprite-block intro-sprite-block-john">
+          <pre id="intro-sprite-john" class="intro-sprite john"></pre>
+          <p class="intro-name john">JOHN</p>
+        </div>
+      </div>
+      <p class="intro-hint">Tryck för att fortsätta</p>
+    </section>
+
+    <section id="screen-game-select" class="screen">
       <h1>Välj spel</h1>
       <button id="select-tictactoe-btn" class="primary-btn">Luffarschack</button>
       <button id="select-hangman-btn" class="primary-btn">Hänga gubbe</button>

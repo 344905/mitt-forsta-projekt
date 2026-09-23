@@ -35,6 +35,109 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// Retro pixel-porträtt (tecken-konst i stil med gamla DOS-spel) som visas
+// på introskärmen. Byggs som textrader istället för att skrivas rakt in i
+// index.html, så att indraget i HTML-koden aldrig råkar bli en del av
+// bilden (ett <pre>-element bevarar exakt allt whitespace).
+// Genererade från riktiga foton på John och Vera (gråskala, ljusstyrka
+// per ruta omvandlad till ett tecken efter densitet — ju ljusare
+// bildpunkt, desto tätare tecken) istället för handritade — så de
+// faktiskt liknar dem, inte bara "en gubbe med tunga ute".
+const VERA_SPRITE = [
+  "%%#*=-+++++************+:.-+",
+  "%##+==+++++*********%***-.:=",
+  "%@%++++++++*******%%%**%+..=",
+  "#@%+++++++******%%%%%%*%*:.-",
+  "@#*++*+=++++*********%%%%- :",
+  "#*++++======+***++++=+*%%=.:",
+  "*++=+++++++=+***+++++++*#=..",
+  "++==+++======+*%*+==+***%=..",
+  "++==++-:.::-=+***=:::=*%#+: ",
+  "+==++=--:---=+***=: .:=%#*: ",
+  "+==+++++=====+***+=--=+*#*: ",
+  "+=-+*++++++==+****++++*%#%. ",
+  "+=-+*+++*+==++*****+***%#%-.",
+  "+=-+*+++*+==:+==******%%@%::",
+  "+=-+*+++*+==-++-*****%%##+--",
+  "====*+++*+==+++*******%##=-=",
+  "=+==*++++==++++*%**+**%##==*",
+  "+*==++++=====++***++**%%%++#",
+  "+%--++++=-:..::-+*+=**%%%*%@",
+  "#*-*=++*=:       -+=**%*=+%@",
+  "#=+**+=*+:       .=+**%-.=%@",
+  "+-*+%%=++...  .. =+**%*::+%@",
+  "-*%=%@+=-.......:***%*-:-+%@",
+  "**-+%#%==:..::.:=%**%=:--+#@",
+  "+:+@@@#-=.  ...-*%%%@*::-+%#",
+  ":-+=+%*--.  ..:=%%%%*+::-+%*",
+  "::.  .:::.   .:+%%%===-::+%+",
+  "::..  .::::...=%%%*--:+:.=*=",
+  "::.. ...::-==+*%%%%= :#-.-*=",
+  "....:...::-=+**%%*%+..:::-=-",
+  ":::..:---=+*********::--:::=",
+  "::::::-==+*%%%**%***:=+==-=+",
+  "-::----==+*%%%%%%**==*+++++*",
+  "+====-===+*%%%%%**+=%*******",
+];
+
+const JOHN_SPRITE = [
+  "@@#*+#################%%%##%",
+  "@@@*+#####%%########%%%%%###",
+  "@@#*+######%%#####%%%%#####%",
+  "@@%%*######%%####%%*%%###%%%",
+  "%@%=*###%*++%###%%*+****%%%%",
+  "%#%+%#%*=:::=%##%*+++=+-:-+%",
+  "*%%+%#+-+- .=%%%*+++=*%- .:*",
+  "%%%*##*+*=-=*%%%*+===++--=+*",
+  "%%%%##%%****%%**+=====+++*%%",
+  "*%%%#%%****%%%**+=--===+*%%%",
+  "%%%##%%***%%%*%*+----==+**%%",
+  "%%%%#%%%***%%**+=----=++**%%",
+  "%%%%%%%%****%-.=-.:--=++**%%",
+  "***%%%%**+*%*::+-  --=++**%%",
+  "***%%%**++*%***+=----==+*%%%",
+  "###%%%*+=+*%%*+++=---==+*%%%",
+  "@#@#%%*+=+****+=+=----=+**%%",
+  "#@@@#%*+=+****+=+=----=+***%",
+  "*%%##%*+=++====-------=+**%%",
+  "==+*%%**=+=  :...   .:=+***%",
+  "-====+**+**.:-::.    .=+*%%%",
+  "-:---*%*+%%=-:::.    -=***%%",
+  "--::-%%**%%*-:::.   :-=+**%+",
+  "--=*%%%%%%%%-:::.  .--=**%+.",
+  "=*@@@@@=+%**=:::   :--=+*+. ",
+  "#@@@@@%::*%*+:::  .---=++. .",
+  "@##@@#+:.-%*+::.  .--===  ..",
+  "##@##%=:..=%*=:   :--=-  ...",
+  "@##%#%-:.. ***-..:---:   ...",
+  "##%#@%:::..:**+==----    ...",
+  "#####+:::...:=+==--:    ....",
+  "####%=:::.....::::.  .......",
+  "+%#%#+:::......     ........",
+  " .-=--::...... .    .....:..",
+];
+
+function renderIntroSprites() {
+  document.getElementById("intro-sprite-vera").textContent = VERA_SPRITE.join("\n");
+  document.getElementById("intro-sprite-john").textContent = JOHN_SPRITE.join("\n");
+}
+
+renderIntroSprites();
+
+// Introskärmen hoppar in vid start och försvinner sedan av sig själv —
+// men bara om man inte redan hunnit lämna den (t.ex. via Avsluta-knappen)
+// under tiden, annars skulle den rycka undan en annan skärm i onödan.
+setTimeout(() => {
+  if (document.getElementById("screen-intro").classList.contains("active")) {
+    showScreen("screen-game-select");
+  }
+}, 3000);
+
+// Går också att hoppa förbi introt direkt genom att trycka någonstans på det.
+document.getElementById("screen-intro").addEventListener("click", () => {
+  showScreen("screen-game-select");
+});
+
 // Allt spelets tillstånd samlat på ett ställe.
 const state = {
   board: Array(9).fill(null),
