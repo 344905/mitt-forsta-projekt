@@ -32,6 +32,19 @@ const hangmanState = {
   status: "playing", // "playing" | "won" | "lost"
 };
 
+// Senast spelade ord — så nästa slump kan utesluta det och undvika
+// att samma ord dyker upp två gånger i rad.
+let lastWord = null;
+
+function pickRandomWord() {
+  if (WORDS.length <= 1) return WORDS[0].toUpperCase();
+  let word;
+  do {
+    word = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+  } while (word === lastWord);
+  return word;
+}
+
 // Vilken bokstav som senast gissades — bara till för att veta vilken
 // bokstav i ordet som ska "poppa till" som visuell bekräftelse. Ingen
 // spellogik beror på den, så den behöver inte vara del av hangmanState.
@@ -83,6 +96,17 @@ function renderHangmanDrawing() {
   });
 }
 
+// Kort skakning på hela teckningen vid en fel gissning — den visuella
+// motsvarigheten till playWrongGuess()/playLose()-ljudet, som annars
+// inte hade haft något synligt "aj" alls.
+function shakeDrawing() {
+  const el = document.querySelector(".hangman-drawing-wrap");
+  if (!el) return;
+  el.classList.remove("shake");
+  void el.offsetWidth; // reflow, så animationen kan startas om vid nästa fel också
+  el.classList.add("shake");
+}
+
 function renderHangmanKeyboard() {
   hangmanKeyboardEl.querySelectorAll(".hangman-key").forEach((key) => {
     const letter = key.dataset.letter;
@@ -100,7 +124,8 @@ function renderHangmanKeyboard() {
 
 // --- Ny omgång: slumpar ett nytt ord och nollställer allt ---
 function startNewHangmanRound() {
-  hangmanState.word = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+  hangmanState.word = pickRandomWord();
+  lastWord = hangmanState.word;
   hangmanState.guessedLetters = [];
   hangmanState.wrongGuesses = 0;
   // Vem som gissar första bokstaven slumpas — annars är det alltid John.
@@ -127,6 +152,7 @@ function guessLetter(letter) {
   const wasCorrect = hangmanState.word.includes(letter);
   if (!wasCorrect) {
     hangmanState.wrongGuesses++;
+    shakeDrawing(); // visuell motsvarighet till playWrongGuess()/playLose()-ljudet
   }
 
   renderHangmanWord();
@@ -140,6 +166,7 @@ function guessLetter(letter) {
     hangmanState.status = "won";
     hangmanResultTextEl.textContent = "Ni gissade ordet!";
     playWin();
+    sparkBurst(hangmanWordEl, "var(--accent)");
   } else if (hangmanState.wrongGuesses >= MAX_WRONG_GUESSES) {
     hangmanState.status = "lost";
     hangmanResultTextEl.textContent = `Gubben hann hänga. Ordet var: ${hangmanState.word}`;

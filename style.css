@@ -326,6 +326,16 @@ h2 {
 #win-line {
   stroke-width: 8;
   stroke-linecap: square;
+  /* "Rita in"-effekt istället för att linjen dyker upp direkt i full
+     längd. Längden (--win-line-length) sätts dynamiskt i script.js
+     eftersom rader/kolumner och diagonaler har olika längd. */
+  stroke-dasharray: var(--win-line-length, 300);
+  stroke-dashoffset: var(--win-line-length, 300);
+  transition: stroke-dashoffset 0.28s ease-out;
+}
+
+.win-line-svg.visible #win-line {
+  stroke-dashoffset: 0;
 }
 
 .win-line-svg.john #win-line {
@@ -390,6 +400,7 @@ h2 {
 }
 
 .winner-banner {
+  position: relative; /* ankare för gnist-skuren (.spark-burst) */
   font-size: 1.4rem;
   padding: 24px 16px;
   animation: blink 0.8s infinite;
@@ -499,6 +510,22 @@ h2 {
   aspect-ratio: 200 / 220;
 }
 
+/* Kort skakning vid fel gissning — visuell motsvarighet till
+   playWrongGuess()/playLose()-ljudet. shakeDrawing() i hangman.js
+   tar bort och lägger tillbaka klassen för att kunna trigga den
+   igen vid flera fel i rad. */
+.hangman-drawing-wrap.shake {
+  animation: hm-shake 0.3s ease-in-out;
+}
+
+@keyframes hm-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
 .hangman-svg {
   width: 100%;
   height: 100%;
@@ -534,11 +561,42 @@ h2 {
 }
 
 .hangman-word {
+  position: relative; /* ankare för gnist-skuren (.spark-burst) */
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
   font-size: clamp(1rem, 6vw, 1.4rem);
+}
+
+/* Gnist-skur: delas av seriesvinst (Luffarschack) och ordvinst
+   (Hänga gubbe) — se sparkBurst() i script.js. */
+.spark-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: rotate(var(--spark-angle)) translateX(0);
+  opacity: 1;
+  animation: spark-fly 0.6s ease-out forwards;
+}
+
+@keyframes spark-fly {
+  to {
+    transform: rotate(var(--spark-angle)) translateX(var(--spark-distance));
+    opacity: 0;
+  }
 }
 
 .hangman-letter {

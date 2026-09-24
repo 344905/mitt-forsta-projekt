@@ -38,12 +38,12 @@ found by manual code review, not by tests, before it was added) and `android-sam
 `android-oneplus-liknande` (real Playwright device profiles — `Galaxy S24` and `Pixel 8`, chosen
 because Playwright has no exact "OnePlus" profile but Pixel 8 shares the OnePlus 12's 412px width —
 with genuine touch events and mobile Chrome user-agents, not just a narrow desktop viewport).
-**Known gap:** the Android/iOS projects only exercise touch-emulation for layout/viewport checks
-(`tests/e2e/responsive.spec.js`); every spec drives game state by calling functions directly via
-`page.evaluate` (`placeMark()`, `guessLetter()`, etc.), so the actual drag/two-tap pointer-handling
-code in `script.js` (`handlePointerDown`/`handlePointerUp`) is never exercised through a real
-dispatched touch gesture in any project. If a touch-specific regression ever shows up, this is why
-the suite didn't catch it.
+`tests/e2e/touch-interaction.spec.js` exercises the real `handlePointerDown`/`handlePointerMove`/
+`handlePointerUp` code path (drag and the two-tap fallback) via genuinely dispatched pointer/touch
+events — not `page.evaluate` shortcuts calling internal functions — skipped automatically on the
+non-touch `chromium`/`webkit` projects. (This closed a gap that existed for one iteration: every
+other spec file still drives state via direct function calls, which is fine for what those files
+test, but touch-interaction.spec.js is the one place the real event-handling code is exercised.)
 
 ### Deployment
 
@@ -123,6 +123,16 @@ clipping, both fixed once already — don't reintroduce them:
 - The exit button no longer closes immediately: it shows `screen-exit-confirm` first
   (`screenBeforeExitConfirm` remembers where to return to on "Avbryt"). Don't make any button that
   ends the session skip this confirmation.
+- Animating an SVG stroke property (e.g. `stroke-dashoffset` for the win-line draw-in effect) from
+  JS: set a **CSS custom property** via `style.setProperty("--x", value)`, and let the stylesheet's
+  class-based rule read `var(--x)` — don't set the animated property directly via inline `style`.
+  An inline style always beats a stylesheet rule on specificity regardless of selector, so a direct
+  inline `stroke-dashoffset` would permanently pin the value and the class-toggled CSS transition
+  would never have anything to animate from/to.
+- Restarting a CSS class-driven animation/transition on the *same* element for a repeated event
+  (win-line redraw, hangman shake on each new wrong guess) needs a forced reflow between removing
+  and re-adding the class (`void el.getBoundingClientRect()` or `void el.offsetWidth`) — otherwise
+  the browser coalesces the remove+add into a no-op and the animation doesn't restart.
 
 ### Luffarschack game rules (current, not what an older README/commit message might say)
 
@@ -142,6 +152,11 @@ clipping, both fixed once already — don't reintroduce them:
   from cell pixel centers) and shows the result text + "Nästa match" button inline below the board,
   while `roundLocked` blocks further board input until the player continues. Don't reintroduce a
   separate "round result" screen that hides the board.
+- The win line draws in with a short animation (`stroke-dasharray`/`stroke-dashoffset` driven by the
+  `--win-line-length` CSS custom property, computed from the actual pixel distance between the two
+  end cells so it works for rows, columns, and diagonals alike).
+- Winning the whole series triggers a `sparkBurst()` (shared helper, also used by Hänga gubbe) on the
+  winner banner, in the winning player's color.
 
 ### Hänga gubbe game rules
 
@@ -155,6 +170,11 @@ clipping, both fixed once already — don't reintroduce them:
 - Same lesson as Luffarschack's win line: on win or loss, the word/drawing/keyboard stay visible and
   the result + "Nytt ord"/"Byt spel" buttons appear inline (`#hangman-result`) rather than switching
   screens; the keyboard just gets `disabled`.
+- A wrong guess shakes the drawing (`shakeDrawing()`, a retriggerable CSS animation on
+  `.hangman-drawing-wrap`) as the visual counterpart to the `playWrongGuess()`/`playLose()` sound.
+- Winning shows a `sparkBurst()` on the revealed word.
+- `pickRandomWord()` excludes the just-played word (`lastWord`) from the next round's random pick,
+  so the same word can't repeat back-to-back.
 
 ### PWA / service worker gotchas
 

@@ -188,6 +188,29 @@ function showScreen(id) {
   if (id !== "screen-game") stopCursorBlink();
 }
 
+// Liten "gnist-skur": ett gäng punkter som far ut från mitten av
+// `container` och tonar bort. Ren CSS-animation (transform+opacity),
+// inga bibliotek. Delas av båda spelen (seriesvinst i Luffarschack,
+// ordvinst i Hänga gubbe) — `container` måste ha `position: relative`
+// för att punkterna ska hamna rätt.
+function sparkBurst(container, color) {
+  const burst = document.createElement("div");
+  burst.className = "spark-burst";
+  const SPARK_COUNT = 10;
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    const spark = document.createElement("span");
+    spark.className = "spark";
+    const angle = (360 / SPARK_COUNT) * i + (Math.random() * 20 - 10);
+    const distance = 40 + Math.random() * 20;
+    spark.style.setProperty("--spark-angle", `${angle}deg`);
+    spark.style.setProperty("--spark-distance", `${distance}px`);
+    spark.style.background = color;
+    burst.appendChild(spark);
+  }
+  container.appendChild(burst);
+  setTimeout(() => burst.remove(), 700);
+}
+
 // --- Bräde-UI byggs en gång ---
 function buildBoardUI() {
   boardEl.innerHTML = "";
@@ -304,11 +327,25 @@ function cellCenter(index) {
 function drawWinLine(line, player) {
   const start = cellCenter(line[0]);
   const end = cellCenter(line[2]);
+  const length = Math.hypot(end.x - start.x, end.y - start.y);
+
   winLineEl.setAttribute("x1", start.x);
   winLineEl.setAttribute("y1", start.y);
   winLineEl.setAttribute("x2", end.x);
   winLineEl.setAttribute("y2", end.y);
-  winLineSvgEl.classList.remove("john", "vera");
+  // "Rita in"-animation: rader/kolumner (200 enheter) och diagonaler
+  // (~283 enheter) har olika längd, så dasharray/dashoffset-startvärdet
+  // måste sättas dynamiskt per vinstlinje — via en CSS-variabel, INTE
+  // direkt på stroke-dashoffset (en inline-stil skulle permanent vinna
+  // över klassregeln som sätter den till 0, och animationen skulle
+  // aldrig synas).
+  winLineEl.style.setProperty("--win-line-length", length);
+
+  winLineSvgEl.classList.remove("john", "vera", "visible");
+  // Tvinga fram en reflow så webbläsaren hinner rendera det dolda
+  // startläget innan "visible" läggs till — annars kan hela övergången
+  // hoppa direkt till slutläget utan synlig animation.
+  void winLineEl.getBoundingClientRect();
   winLineSvgEl.classList.add(player === "John" ? "john" : "vera", "visible");
 }
 
@@ -464,6 +501,7 @@ document.getElementById("next-round-btn").addEventListener("click", () => {
     winnerBannerEl.textContent = `Grattis ${seriesWinner}!`;
     winnerBannerEl.className = `winner-banner ${seriesWinner === "John" ? "john" : "vera"}`;
     showScreen("screen-series-winner");
+    sparkBurst(winnerBannerEl, seriesWinner === "John" ? "var(--john-color)" : "var(--vera-color)");
   } else {
     playClick();
     state.gameNumber++;
