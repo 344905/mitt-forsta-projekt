@@ -11,6 +11,11 @@ module.exports = defineConfig({
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // WebKit = Safaris motor. Lades till efter att en iOS Safari-specifik
+    // AudioContext-bugg ("interrupted"-state) upptäcktes genom manuell
+    // kodgranskning, inte av testsviten — WebKit-körningar ger oss en chans
+    // att fånga liknande motor-specifika buggar automatiskt i framtiden.
+    { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   // Startar den vanliga lokala servern (samma "npm start" man kör för hand)
   // automatiskt innan testerna kör, och stänger av den efteråt.
