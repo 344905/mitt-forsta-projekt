@@ -1,19 +1,8 @@
 // Hänga gubbe — John och Vera turas om att gissa bokstäver tillsammans
 // på samma ord. Helt separat fil/logik från Luffarschack (script.js)
-// så de två spelen aldrig krockar med varandra.
-
-const WORDS = [
-  "sol", "mus", "hus", "bil", "bok", "båt", "bad", "ben", "tak", "tåg",
-  "mat", "mor", "far", "fot", "får", "hår", "nos", "ris", "ros", "rum",
-  "sak", "säl", "val", "vas", "ved", "fisk", "mask", "hund", "hand", "sand",
-  "bord", "stol", "park", "korv", "salt", "glas", "gris", "kniv", "knut", "moln",
-  "näsa", "rita", "ruta", "saga", "sida", "sova", "vila", "lera", "krita", "skola",
-  "katt", "hatt", "boll", "buss", "mamma", "pappa", "docka", "flicka", "gubbe", "hoppa",
-  "kanna", "kappa", "klocka", "mygga", "natt", "nalle", "sitta", "sommar", "ägg", "äpple",
-  "jag", "du", "han", "hon", "vi", "ni", "de", "och", "att", "är",
-  "en", "ett", "på", "av", "med", "som", "inte", "hej", "ja", "nej",
-  "sjunga", "sjö", "kjol", "tjuv", "ljus", "hjärta", "stjärna", "ring", "säng", "kung",
-];
+// så de två spelen aldrig krockar med varandra. Orden kommer numera från
+// den planet man befinner sig på i rymdresan (journey.js) istället för en
+// enda blandad lista — se pickRandomWord().
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ".split("");
 // Första 3 felen bygger själva galgen (stolpe, överligg, rep), resten
@@ -37,10 +26,11 @@ const hangmanState = {
 let lastWord = null;
 
 function pickRandomWord() {
-  if (WORDS.length <= 1) return WORDS[0].toUpperCase();
+  const words = getCurrentPlanet().words;
+  if (words.length <= 1) return words[0].toUpperCase();
   let word;
   do {
-    word = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+    word = words[Math.floor(Math.random() * words.length)].toUpperCase();
   } while (word === lastWord);
   return word;
 }
@@ -56,6 +46,18 @@ const hangmanWordEl = document.getElementById("hangman-word");
 const hangmanKeyboardEl = document.getElementById("hangman-keyboard");
 const hangmanResultEl = document.getElementById("hangman-result");
 const hangmanResultTextEl = document.getElementById("hangman-result-text");
+const hangmanAgainBtnEl = document.getElementById("hangman-again-btn");
+const hangmanPlanetNameEl = document.getElementById("hangman-planet-name");
+const hangmanFuelMeterEl = document.getElementById("hangman-fuel-meter");
+const gameSelectJourneyStatusEl = document.getElementById("game-select-journey-status");
+const hangmanLaunchOverlayEl = document.getElementById("hangman-launch-overlay");
+const launchOverlayTextEl = document.getElementById("launch-overlay-text");
+const appEl = document.getElementById("app");
+
+// Sant mellan att en omgång avgjorts med full bränsletank och att man
+// faktiskt tryckt vidare — styr om "Nytt ord"-knappen startar en vanlig
+// ny omgång eller lyfter till nästa planet (se guessLetter/hangman-again-btn).
+let readyToLaunch = false;
 
 // --- Tangentbordet byggs en gång ---
 function buildHangmanKeyboard() {
@@ -107,6 +109,76 @@ function shakeDrawing() {
   el.classList.add("shake");
 }
 
+// Namnet på planeten man just nu spelar på, ovanför teckningen.
+function renderPlanetName() {
+  hangmanPlanetNameEl.textContent = `🪐 ${getCurrentPlanet().name}`;
+}
+
+// Bränslemätaren: en rad pixel-rutor, en per bränsleenhet planeten kräver,
+// fyllda upp till hur mycket bränsle man samlat än så länge. Byggs om varje
+// gång (istället för att bara toggla synlighet) eftersom fuelNeeded varierar
+// mellan planeter.
+function renderFuelMeter() {
+  const planet = getCurrentPlanet();
+  hangmanFuelMeterEl.innerHTML = "";
+  for (let i = 0; i < planet.fuelNeeded; i++) {
+    const pip = document.createElement("span");
+    pip.className = "fuel-pip";
+    if (i < journeyState.fuel) pip.classList.add("filled");
+    hangmanFuelMeterEl.appendChild(pip);
+  }
+}
+
+// Färgar hela app-panelen efter planetens tema medan man faktiskt är
+// landad där — nollställs (renderSpaceBackdrop) under själva resan mellan
+// planeter, så bakgrunden märkbart skiljer sig mellan "på en planet" och
+// "i rymden".
+function renderPlanetBackdrop() {
+  appEl.style.setProperty("--planet-bg", getCurrentPlanet().bg);
+  appEl.classList.add("on-planet");
+}
+
+function renderSpaceBackdrop() {
+  appEl.classList.remove("on-planet");
+}
+
+// Liten statusrad på spelval-skärmen, så resan syns även utan att öppna
+// Hänga gubbe.
+function renderGameSelectJourneyStatus() {
+  const planet = getCurrentPlanet();
+  gameSelectJourneyStatusEl.textContent =
+    `🪐 ${planet.name} · 🚀 ${Math.min(journeyState.fuel, planet.fuelNeeded)}/${planet.fuelNeeded}`;
+}
+
+// Lyft mot nästa planet: en kort resa i rymden (bakgrunden återgår till
+// standard) innan man landar och en ny omgång börjar på den nya planeten.
+function launchToNextPlanet() {
+  readyToLaunch = false;
+  renderSpaceBackdrop();
+  launchOverlayTextEl.textContent = "🚀 Startar mot nästa planet...";
+  hangmanLaunchOverlayEl.classList.remove("hidden");
+  hangmanResultEl.classList.add("hidden");
+
+  setTimeout(() => {
+    const roundedGalaxy = advanceToNextPlanet();
+    renderGameSelectJourneyStatus();
+
+    if (!roundedGalaxy) {
+      hangmanLaunchOverlayEl.classList.add("hidden");
+      startNewHangmanRound();
+      return;
+    }
+
+    // Extra stund för att fira att hela planetrundan är klar, innan man
+    // landar på planet 1 igen med en ny omgång.
+    launchOverlayTextEl.textContent = "🌌 Hela galaxen utforskad — ny resa!";
+    setTimeout(() => {
+      hangmanLaunchOverlayEl.classList.add("hidden");
+      startNewHangmanRound();
+    }, 1400);
+  }, 1400);
+}
+
 function renderHangmanKeyboard() {
   hangmanKeyboardEl.querySelectorAll(".hangman-key").forEach((key) => {
     const letter = key.dataset.letter;
@@ -138,6 +210,10 @@ function startNewHangmanRound() {
   renderHangmanWord();
   renderHangmanDrawing();
   renderHangmanKeyboard();
+  renderPlanetName();
+  renderFuelMeter();
+  renderPlanetBackdrop();
+  hangmanAgainBtnEl.textContent = "Nytt ord";
   hangmanResultEl.classList.add("hidden");
   showScreen("screen-hangman-game");
 }
@@ -178,6 +254,12 @@ function guessLetter(letter) {
   }
 
   if (hangmanState.status !== "playing") {
+    // Bränsle för en avklarad omgång — vinst ger mer, men en förlust ger
+    // också bränsle. Ingen ska känna sig fast bara för att ordet var svårt.
+    readyToLaunch = addFuel(hangmanState.status === "won" ? FUEL_PER_WIN : FUEL_PER_LOSS);
+    renderFuelMeter();
+    renderGameSelectJourneyStatus();
+    hangmanAgainBtnEl.textContent = readyToLaunch ? "🚀 Lyft till nästa planet!" : "Nytt ord";
     renderHangmanKeyboard();
     hangmanResultEl.classList.remove("hidden");
     return;
@@ -188,13 +270,18 @@ function guessLetter(letter) {
   renderHangmanKeyboard();
 }
 
-document.getElementById("hangman-again-btn").addEventListener("click", () => {
+hangmanAgainBtnEl.addEventListener("click", () => {
   playClick();
-  startNewHangmanRound();
+  if (readyToLaunch) {
+    launchToNextPlanet();
+  } else {
+    startNewHangmanRound();
+  }
 });
 
 document.getElementById("hangman-switch-btn").addEventListener("click", () => {
   playClick();
+  renderSpaceBackdrop();
   showScreen("screen-game-select");
 });
 
@@ -211,3 +298,7 @@ window.addEventListener("keydown", (event) => {
     }
   }
 });
+
+// Visa var resan står redan på spelval-skärmen, innan man ens öppnat
+// Hänga gubbe.
+renderGameSelectJourneyStatus();

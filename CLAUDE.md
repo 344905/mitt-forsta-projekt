@@ -7,11 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Rymdarkaden** — a small browser-based arcade with two games for two fixed players, John (green)
 and Vera (magenta/purple), sharing a retro 80s/90s neon space look (pixel font, animated starfield,
 chunky box-shadow borders): **Luffarschack** (tic-tac-toe, best-of-5 series) and **Hänga gubbe**
-(Hangman, co-op letter-guessing). A game-picker screen (`screen-game-select`) is the app's entry
-point, and every screen in both games has a way back to it ("Byt spel"/back buttons) — don't add a
-screen without one. This is the user's first-ever coding project — they are a complete beginner.
-When making changes, explain what's happening and why in plain terms rather than assuming
-familiarity with web dev concepts.
+(Hangman, co-op letter-guessing). Hänga gubbe also drives a shared, non-competitive "space journey"
+(`journey.js`) through a fixed sequence of themed planets — see "The space journey" below; Luffarschack
+is untouched by it. A game-picker screen (`screen-game-select`) is the app's entry point, and every
+screen in both games has a way back to it ("Byt spel"/back buttons) — don't add a screen without one.
+This is the user's first-ever coding project — they are a complete beginner. When making changes,
+explain what's happening and why in plain terms rather than assuming familiarity with web dev concepts.
 
 Plain HTML/CSS/JS with zero build step and zero *runtime* npm dependencies — deliberately kept
 simple. It is also an installable PWA (manifest + service worker) deployed via GitHub Pages, so it
@@ -175,6 +176,43 @@ clipping, both fixed once already — don't reintroduce them:
 - Winning shows a `sparkBurst()` on the revealed word.
 - `pickRandomWord()` excludes the just-played word (`lastWord`) from the next round's random pick,
   so the same word can't repeat back-to-back.
+
+### The space journey (`journey.js`)
+
+John and Vera travel together through a fixed sequence of themed planets, driven entirely by Hänga
+gubbe — Luffarschack is completely unaffected. This exists to make Hänga gubbe (spelling/letters)
+feel rewarding to keep playing, and deliberately replaced an earlier "Rivalerna" idea (a persistent
+John-vs-Vera stats row) that the user rejected: John and Vera are meaningfully different ages, so the
+journey is **one shared progress**, not a per-player comparison — see the design discussion this
+grew out of before touching `PLANETS`.
+
+- `PLANETS` (in `journey.js`) is a fixed, ordered list of 12 themed planets, each with its own
+  `words` list (used instead of a single global word list — `pickRandomWord()` in `hangman.js` reads
+  from `getCurrentPlanet().words`) and its own `fuelNeeded`. The first two planets need 8 fuel
+  (~4 rounds), the rest need 12 (~6 rounds) — short at first so the concept "clicks" quickly, longer
+  once it already feels fun.
+- Every **completed** round adds fuel via `addFuel()` — a win gives `FUEL_PER_WIN` (2), a **loss**
+  still gives `FUEL_PER_LOSS` (1). This is deliberate: losing must never stall progress, only slow it
+  down, to match the "encouraging, not punishing" principle established elsewhere in this file.
+- `journeyState` (`{ planetIndex, fuel }`) persists to `localStorage`
+  (`JOURNEY_STORAGE_KEY = "rymdarkaden-journey-v1"`) the same try/catch-guarded way `sound.js` saves
+  the sound preference. It's one shared journey, not per-player.
+- When fuel reaches the current planet's `fuelNeeded`, `hangman-again-btn`'s label changes from
+  "Nytt ord" to "🚀 Lyft till nästa planet!" (`readyToLaunch`, set in `guessLetter()`) and clicking it
+  runs `launchToNextPlanet()` instead of `startNewHangmanRound()` directly.
+- `launchToNextPlanet()` is a timed, two-phase transition (not a new screen — same "stay on the
+  board" principle as the win-line/result inline pattern): it shows `#hangman-launch-overlay` over
+  the existing Hänga gubbe screen, reverts the panel to the default space look
+  (`renderSpaceBackdrop()`), waits, then calls `advanceToNextPlanet()` and starts a fresh round on
+  the new planet. `advanceToNextPlanet()` wraps back to planet 0 after the last planet so the journey
+  never dead-ends.
+- The "on a planet" vs. "in space" visual distinction (as requested) is done by toggling
+  `#app.on-planet` and setting the `--planet-bg` CSS custom property to the current planet's gradient
+  (`renderPlanetBackdrop()`/`renderSpaceBackdrop()`) — **not** by touching the shared `#starfield`
+  canvas, which stays exactly as-is everywhere. Same CSS-custom-property lesson as the win line: JS
+  sets the variable, the stylesheet rule (`#app.on-planet`) reads it.
+- A small always-visible status line (`#game-select-journey-status`) mirrors the current planet/fuel
+  on the game-select screen, so the journey is visible even before opening Hänga gubbe.
 
 ### PWA / service worker gotchas
 

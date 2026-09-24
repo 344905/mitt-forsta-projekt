@@ -686,3 +686,69 @@ h2 {
   padding: 10px 14px;
   font-size: 0.7rem;
 }
+
+/* Rymdresan: John och Vera reser tillsammans genom planeterna i Hänga
+   gubbe (journey.js). --planet-bg sätts av JS (renderPlanetBackdrop) och
+   nollställs (renderSpaceBackdrop) under själva resan mellan planeter,
+   så panelen märkbart skiljer sig mellan "på en planet" och "i rymden". */
+#app.on-planet {
+  background: var(--planet-bg, var(--panel-bg));
+  transition: background 0.6s ease;
+}
+
+.journey-status {
+  font-size: 0.65rem;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
+.planet-name {
+  font-size: 0.8rem;
+  color: var(--accent);
+  text-shadow: 0 0 6px var(--accent);
+}
+
+.fuel-meter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.fuel-pip {
+  width: 12px;
+  height: 12px;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 2px var(--accent), 0 0 0 3px #000;
+}
+
+.fuel-pip.filled {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 0 3px #000, 0 0 6px var(--accent);
+}
+
+/* Tar över hela Hänga gubbe-skärmen kort under lyftet mellan planeter —
+   samma "stanna kvar, byt inte skärm"-princip som resultatrutorna, bara
+   som en overlay istället för en egen skärm eftersom den bara syns en kort
+   stund och alltid leder vidare till en ny omgång automatiskt. */
+.launch-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background: var(--panel-bg);
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-shadow: 0 0 6px var(--accent);
+}
+
+.launch-overlay.hidden {
+  display: none;
+}
+
+#screen-hangman-game {
+  position: relative;
+}
