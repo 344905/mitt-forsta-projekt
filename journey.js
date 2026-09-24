@@ -33,7 +33,7 @@ const PLANETS = [
     sceneColor: "#ff7043", scene: ["mountain", "volcano", "mountain"],
     words: [
       "ägg", "ödla", "klor", "svans", "tänder", "fossil", "jätte", "museum",
-      "urtid", "vulkan", "meteor", "grotta", "skelett", "brant", "stjärt",
+      "spår", "vulkan", "meteor", "grotta", "skelett", "sten", "hals",
       "vinge", "gap", "stor", "liten",
     ],
   },
@@ -55,7 +55,7 @@ const PLANETS = [
     words: [
       "bil", "buss", "tåg", "cykel", "moped", "lastbil", "taxi", "flygplan",
       "båt", "skepp", "väg", "gata", "bro", "tunnel", "stopp", "skylt",
-      "lykta", "hjälm", "körkort", "parkering", "korsning", "rondell",
+      "lykta", "hjälm", "hjul", "parkering", "korsning", "rondell",
     ],
   },
   {
@@ -85,7 +85,7 @@ const PLANETS = [
     words: [
       "robot", "skruv", "batteri", "kabel", "knapp", "skärm", "lampa",
       "motor", "raket", "rymdskepp", "astronaut", "planet", "måne",
-      "stjärna", "satellit", "radar", "dator", "sladd",
+      "stjärna", "satellit", "fjärrkontroll", "dator", "sladd",
     ],
   },
   {
@@ -133,7 +133,7 @@ const PLANETS = [
     sceneColor: "#ce93d8", scene: ["note", "note", "note"],
     words: [
       "sång", "gitarr", "trumma", "piano", "flöjt", "fiol", "mikrofon",
-      "högtalare", "dans", "rytm", "ton", "refräng", "konsert", "orkester",
+      "högtalare", "dans", "trumpet", "tamburin", "scen", "konsert", "orkester",
       "kör", "musiker",
     ],
   },
