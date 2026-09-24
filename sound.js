@@ -11,7 +11,20 @@ const SOUND_STORAGE_KEY = "rymdarkaden-sound-enabled";
 const SOUND_GAIN = 0.18;
 
 let audioCtx = null;
-let soundEnabled = localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
+let soundEnabled = readSoundPreference();
+
+// localStorage kan kasta i privat surfläge (särskilt äldre Safari) —
+// om det händer redan här, vid inladdning, skulle HELA sound.js sluta
+// köra och varje playX-funktion bli odefinierad, vilket kraschar
+// hangman.js första gången ett ljud ska spelas. Faller tillbaka på
+// "ljud på" om läsningen misslyckas.
+function readSoundPreference() {
+  try {
+    return localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
+  } catch (e) {
+    return true;
+  }
+}
 
 // AudioContext får bara skapas/startas efter en användarinteraktion
 // (webbläsarens regel mot automatiskt ljud) — skapas därför först när
@@ -30,23 +43,33 @@ function getAudioContext() {
 // ett annat värde under tonens längd, för stigande/fallande effekter.
 function playTone({ freq, duration, type = "square", sweepTo = null, startAt = 0 }) {
   if (!soundEnabled) return;
-  const ctx = getAudioContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+  // Ljud får ALDRIG kunna krascha spellogiken (t.ex. om AudioContext inte
+  // stöds, eller redan är "closed") — guessLetter() i hangman.js anropar
+  // playWin()/playLose() innan resultatskärmen visas, så ett okontrollerat
+  // fel här skulle kunna dölja vinst/förlust helt. Se code-reviewer-fyndet
+  // från iteration 1.
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, ctx.currentTime + startAt);
-  if (sweepTo !== null) {
-    osc.frequency.linearRampToValueAtTime(sweepTo, ctx.currentTime + startAt + duration);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + startAt);
+    if (sweepTo !== null) {
+      osc.frequency.linearRampToValueAtTime(sweepTo, ctx.currentTime + startAt + duration);
+    }
+
+    gain.gain.setValueAtTime(SOUND_GAIN, ctx.currentTime + startAt);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + startAt + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime + startAt);
+    osc.stop(ctx.currentTime + startAt + duration);
+  } catch (e) {
+    // Ett spel utan ljud är okej. Ett spel som fastnar för att ljudet
+    // gick sönder är det inte.
   }
-
-  gain.gain.setValueAtTime(SOUND_GAIN, ctx.currentTime + startAt);
-  gain.gain.linearRampToValueAtTime(0, ctx.currentTime + startAt + duration);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(ctx.currentTime + startAt);
-  osc.stop(ctx.currentTime + startAt + duration);
 }
 
 function playCorrectGuess() {
@@ -78,7 +101,13 @@ function isSoundEnabled() {
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
-  localStorage.setItem(SOUND_STORAGE_KEY, soundEnabled ? "on" : "off");
+  try {
+    localStorage.setItem(SOUND_STORAGE_KEY, soundEnabled ? "on" : "off");
+  } catch (e) {
+    // Kan inte sparas (t.ex. privat surfläge) — knappen ska ändå visa
+    // rätt läge för resten av den här sessionen, bara inte komma ihåg
+    // det till nästa gång.
+  }
   renderSoundToggleButton();
   return soundEnabled;
 }
