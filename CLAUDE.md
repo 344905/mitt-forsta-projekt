@@ -22,12 +22,28 @@ build — the "zero dependencies" principle still applies to the app itself.
 ## Commands
 
 ```bash
-npm start        # runs `node server.js`, serves the game at http://localhost:3000
+npm start          # runs `node server.js`, serves the game at http://localhost:3000
+npm run test:e2e   # Playwright end-to-end tests (see below)
 ```
 
-There is no build step, bundler, linter, or test suite — edit the files directly and reload the
-browser. `node -c <file>.js` (e.g. `node -c script.js`) is a fast way to catch JS syntax errors
-without starting the server.
+There is no build step or bundler — edit the files directly and reload the browser. `node -c
+<file>.js` (e.g. `node -c script.js`) is a fast way to catch JS syntax errors without starting the
+server. Playwright (`@playwright/test`, dev-only) is the project's one test/build dependency — see
+"Agent-team workflow" below for how it's used, and "PWA / service worker gotchas" for why
+`page.addInitScript` disabling `navigator.serviceWorker.register` shows up in every spec file.
+
+`playwright.config.js` runs the suite across 4 projects: `chromium`/`webkit` (desktop, different
+rendering engines — `webkit` exists specifically because an iOS Safari-only `AudioContext` bug was
+found by manual code review, not by tests, before it was added) and `android-samsung`/
+`android-oneplus-liknande` (real Playwright device profiles — `Galaxy S24` and `Pixel 8`, chosen
+because Playwright has no exact "OnePlus" profile but Pixel 8 shares the OnePlus 12's 412px width —
+with genuine touch events and mobile Chrome user-agents, not just a narrow desktop viewport).
+**Known gap:** the Android/iOS projects only exercise touch-emulation for layout/viewport checks
+(`tests/e2e/responsive.spec.js`); every spec drives game state by calling functions directly via
+`page.evaluate` (`placeMark()`, `guessLetter()`, etc.), so the actual drag/two-tap pointer-handling
+code in `script.js` (`handlePointerDown`/`handlePointerUp`) is never exercised through a real
+dispatched touch gesture in any project. If a touch-specific regression ever shows up, this is why
+the suite didn't catch it.
 
 ### Deployment
 
