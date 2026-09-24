@@ -413,12 +413,14 @@ function handlePointerUp(index, event) {
 }
 
 function placeMark(index) {
+  playPlaceMark(state.currentPlayer);
   state.board[index] = state.currentPlayer;
   finishTurn(state.currentPlayer);
 }
 
 function movePiece(fromIndex, toIndex) {
   const player = state.board[fromIndex];
+  playDragMove(player);
   state.board[toIndex] = player;
   state.board[fromIndex] = null;
   state.selectedIndex = null;
@@ -439,6 +441,7 @@ function finishTurn(player) {
 }
 
 function handleRoundWin(winner, winningLine) {
+  playMatchWin(winner);
   state.scores[winner]++;
   renderScores();
   roundResultTextEl.textContent = `${winner} vann match ${state.gameNumber}!`;
@@ -456,6 +459,7 @@ function handleRoundWin(winner, winningLine) {
 document.getElementById("next-round-btn").addEventListener("click", () => {
   if (state.scores.John >= WINS_NEEDED || state.scores.Vera >= WINS_NEEDED) {
     const seriesWinner = state.scores.John >= WINS_NEEDED ? "John" : "Vera";
+    playSeriesWin(seriesWinner);
     winnerBannerEl.textContent = `Grattis ${seriesWinner}!`;
     winnerBannerEl.className = `winner-banner ${seriesWinner === "John" ? "john" : "vera"}`;
     showScreen("screen-series-winner");

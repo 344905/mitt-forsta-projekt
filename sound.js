@@ -99,6 +99,37 @@ function isSoundEnabled() {
   return soundEnabled;
 }
 
+// --- Luffarschack-ljud (docs/design/2026-09-24-ljud-luffarschack.md) ---
+// Samma "typ" av ljud för båda spelarna, bara register (tonhöjd) skiljer
+// — motiverat av att Luffarschack redan har tydlig spelaridentitet
+// (egna färger/markörer), till skillnad från Hänga gubbes delade ljud.
+
+function playPlaceMark(player) {
+  playTone({ freq: player === "John" ? 380 : 560, duration: 0.07, type: "square" });
+}
+
+function playDragMove(player) {
+  const [from, to] = player === "John" ? [300, 420] : [440, 620];
+  playTone({ freq: from, sweepTo: to, duration: 0.1, type: "triangle" });
+}
+
+function playMatchWin(player) {
+  const [a, b] = player === "John" ? [392.0, 523.3] : [493.9, 659.3]; // G4-C5 / B4-E5
+  playTone({ freq: a, duration: 0.1, type: "square" });
+  playTone({ freq: b, duration: 0.1, type: "square", startAt: 0.1 });
+}
+
+function playSeriesWin(player) {
+  // Samma rytm som Hänga gubbes playWin. Veras version transponerad en
+  // stor ters upp (samma mönster som playMatchWin).
+  const notes = player === "John"
+    ? [261.6, 329.6, 392.0, 523.3]
+    : [329.6, 415.3, 493.9, 659.3];
+  notes.forEach((freq, i) => {
+    playTone({ freq, duration: 0.12, type: "square", startAt: i * 0.1 });
+  });
+}
+
 function toggleSound() {
   soundEnabled = !soundEnabled;
   try {
