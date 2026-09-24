@@ -13,9 +13,11 @@ screen without one. This is the user's first-ever coding project — they are a 
 When making changes, explain what's happening and why in plain terms rather than assuming
 familiarity with web dev concepts.
 
-Plain HTML/CSS/JS with zero build step and zero npm dependencies — deliberately kept simple. It is
-also an installable PWA (manifest + service worker) deployed via GitHub Pages, so it can be added to
-an Android home screen.
+Plain HTML/CSS/JS with zero build step and zero *runtime* npm dependencies — deliberately kept
+simple. It is also an installable PWA (manifest + service worker) deployed via GitHub Pages, so it
+can be added to an Android home screen. Playwright (`@playwright/test`) was added as the project's
+first dependency, but it's dev-only (testing), doesn't ship, and doesn't affect the PWA/GitHub Pages
+build — the "zero dependencies" principle still applies to the app itself.
 
 ## Commands
 
@@ -154,3 +156,31 @@ Two details matter if you touch this file:
    doesn't have yet).
 
 When adding/removing files that should work offline, update the `ASSETS` array in `sw.js` to match.
+
+## Agent-team workflow (experimental)
+
+The user is experimenting with Claude Code's subagent delegation model on this project — the roles
+below are scoped for a small dependency-free static game, not a general template. The main/
+coordinating session acts as the point of contact with the user: breaks a request into steps,
+delegates to the right subagent(s) below, and reports back a short summary (what changed, what's
+still open, a suggested next step) rather than dumping every subagent's raw output.
+
+Roles (`.claude/agents/`):
+- **`builder`** — implements features/fixes per this file's conventions. Never commits on its own
+  (this project only commits when the user explicitly asks — see the global git safety rules).
+- **`game-designer`** — proposes gameplay/UI ideas and flows as markdown in `docs/design/`. Never
+  touches code.
+- **`sound-designer`** — proposes retro 8-bit sound effect ideas (Web Audio API oscillator beeps
+  preferred over audio files, to keep the shipped app dependency-free) as markdown in `docs/design/`.
+  Never touches code. The app currently has no sound at all.
+- **`code-reviewer`** — reviews a finished change against this file's conventions and known pitfalls
+  (see the gotcha sections above). Read-only; never edits code.
+- **`qa-browser`** — writes/runs Playwright end-to-end tests in `tests/e2e/` against the real running
+  app (`npm start`), across multiple screen widths. Never touches production code.
+
+Typical per-feature flow: confirm scope with the user → `game-designer`/`sound-designer` propose
+(when the feature has a real design/sound decision) → `builder` implements → `code-reviewer` and
+`qa-browser` run → `builder` fixes any critical/high findings → summarize for the user.
+
+Definition of done for a feature built this way: `npm run test:e2e` passing, and no unresolved
+critical/high findings from `code-reviewer`.

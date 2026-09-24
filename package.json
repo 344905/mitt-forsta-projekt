@@ -4,6 +4,10 @@
   "private": true,
   "description": "Rymdarkaden — Luffarschack och Hänga gubbe för John och Vera",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
   }
 }
