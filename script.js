@@ -135,6 +135,7 @@ setTimeout(() => {
 
 // Går också att hoppa förbi introt direkt genom att trycka någonstans på det.
 document.getElementById("screen-intro").addEventListener("click", () => {
+  playClick();
   showScreen("screen-game-select");
 });
 
@@ -464,30 +465,36 @@ document.getElementById("next-round-btn").addEventListener("click", () => {
     winnerBannerEl.className = `winner-banner ${seriesWinner === "John" ? "john" : "vera"}`;
     showScreen("screen-series-winner");
   } else {
+    playClick();
     state.gameNumber++;
     startNewRound();
   }
 });
 
 document.getElementById("continue-btn").addEventListener("click", () => {
+  playClick();
   showScreen("screen-play-again");
 });
 
 document.getElementById("play-again-btn").addEventListener("click", () => {
+  playClick();
   startNewSeries();
 });
 
 document.getElementById("start-btn").addEventListener("click", () => {
+  playClick();
   startNewSeries();
 });
 
 // Spelval — vilket av de två spelen man vill öppna. Hänga gubbes egen
 // startlogik (startNewHangmanRound) ligger i hangman.js.
 document.getElementById("select-tictactoe-btn").addEventListener("click", () => {
+  playClick();
   showScreen("screen-welcome");
 });
 
 document.getElementById("select-hangman-btn").addEventListener("click", () => {
+  playClick();
   startNewHangmanRound();
 });
 
@@ -496,6 +503,7 @@ document.getElementById("select-hangman-btn").addEventListener("click", () => {
 // ett pågående drag.
 ["welcome-switch-btn", "round-switch-btn", "play-again-switch-btn", "goodbye-back-btn"].forEach((id) => {
   document.getElementById(id).addEventListener("click", () => {
+    playClick();
     showScreen("screen-game-select");
   });
 });
@@ -506,11 +514,13 @@ document.getElementById("select-hangman-btn").addEventListener("click", () => {
 let screenBeforeExitConfirm = null;
 
 document.getElementById("exit-btn").addEventListener("click", () => {
+  playClick();
   screenBeforeExitConfirm = document.querySelector(".screen.active")?.id || "screen-game-select";
   showScreen("screen-exit-confirm");
 });
 
 document.getElementById("exit-cancel-btn").addEventListener("click", () => {
+  playClick();
   showScreen(screenBeforeExitConfirm || "screen-game-select");
 });
 
@@ -518,6 +528,7 @@ document.getElementById("exit-cancel-btn").addEventListener("click", () => {
 // bara på flikar öppnade via script). Fallback: visa en tydlig
 // "du kan stänga fliken själv nu"-skärm om stängningen blockeras.
 document.getElementById("exit-confirm-btn").addEventListener("click", () => {
+  playClick();
   window.close();
   setTimeout(() => {
     showScreen("screen-goodbye");

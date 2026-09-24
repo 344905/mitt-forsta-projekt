@@ -33,7 +33,11 @@ function getAudioContext() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  if (audioCtx.state === "suspended") {
+  // "!== running" (inte bara "=== suspended") fångar även iOS Safaris
+  // "interrupted"-state, som webbläsaren kan sätta när fliken bakgrundas
+  // (appväxling, samtal, Siri). Utan detta blir ljudet permanent tyst
+  // efter en sådan avbrytning tills sidan laddas om.
+  if (audioCtx.state !== "running") {
     audioCtx.resume();
   }
   return audioCtx;
