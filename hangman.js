@@ -48,6 +48,7 @@ const hangmanResultEl = document.getElementById("hangman-result");
 const hangmanResultTextEl = document.getElementById("hangman-result-text");
 const hangmanAgainBtnEl = document.getElementById("hangman-again-btn");
 const hangmanPlanetNameEl = document.getElementById("hangman-planet-name");
+const hangmanPlanetSceneEl = document.getElementById("hangman-planet-scene");
 const hangmanFuelMeterEl = document.getElementById("hangman-fuel-meter");
 const gameSelectJourneyStatusEl = document.getElementById("game-select-journey-status");
 const hangmanLaunchOverlayEl = document.getElementById("hangman-launch-overlay");
@@ -136,10 +137,20 @@ function renderFuelMeter() {
 function renderPlanetBackdrop() {
   appEl.style.setProperty("--planet-bg", getCurrentPlanet().bg);
   appEl.classList.add("on-planet");
+  renderPlanetScene();
 }
 
 function renderSpaceBackdrop() {
   appEl.classList.remove("on-planet");
+  hangmanPlanetSceneEl.innerHTML = "";
+}
+
+// Liten siluett-scen (stall/djungel, vulkan, hav, ...) längs botten av
+// panelen, så varje planet faktiskt ser ut som sitt tema — inte bara en
+// färgad bakgrund. Formerna själva byggs i journey.js (delade mellan
+// planeter), det här bara skriver in dem i DOM:en.
+function renderPlanetScene() {
+  hangmanPlanetSceneEl.innerHTML = buildPlanetSceneSVG(getCurrentPlanet());
 }
 
 // Liten statusrad på spelval-skärmen, så resan syns även utan att öppna

@@ -502,6 +502,10 @@ h2 {
    hade tidigare. */
 .hangman-drawing-wrap {
   position: relative;
+  /* Egen stapel-kontext, så .planet-scene (z-index: -1) garanterat hamnar
+     bakom galgen istället för att fly ut till en yttre förälders
+     stapel-kontext. */
+  isolation: isolate;
   /* Tre tak samtidigt: aldrig större än 180px, aldrig bredare än hälften
      av skärmen, och aldrig högre än en fjärdedel av skärmens höjd — det
      sista är vad som faktiskt krävdes för att undvika scroll på korta
@@ -751,4 +755,25 @@ h2 {
 
 #screen-hangman-game {
   position: relative;
+}
+
+/* Liten siluett-scen (stall/djungel, vulkan, hav, ...) bakom själva
+   hänga gubbe-teckningen — se buildPlanetSceneSVG (journey.js) /
+   renderPlanetScene (hangman.js). Fyller hela ritytan så varje planet
+   faktiskt ser ut som sitt tema, inte bara en färgad bakgrund. Negativ
+   z-index håller den bakom galg-SVG:n (som själv saknar bakgrund, så
+   scenen syns runt/bakom linjerna).*/
+.planet-scene {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.55;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.planet-scene svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }

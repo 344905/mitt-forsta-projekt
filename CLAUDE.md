@@ -213,6 +213,16 @@ grew out of before touching `PLANETS`.
   sets the variable, the stylesheet rule (`#app.on-planet`) reads it.
 - A small always-visible status line (`#game-select-journey-status`) mirrors the current planet/fuel
   on the game-select screen, so the journey is visible even before opening Hänga gubbe.
+- Each planet also gets a small silhouette **scene** (`SCENE_SHAPES`/`buildPlanetSceneSVG()` in
+  `journey.js`, e.g. a fence+barn+trees for Djurplaneten, mountains+a volcano for Dinosaurieplaneten)
+  rendered by `renderPlanetScene()` into `#hangman-planet-scene`, positioned **behind the hangman
+  drawing itself** (`.hangman-drawing-wrap`, `position: absolute; inset: 0; z-index: -1`) — not as a
+  strip at the bottom of the screen, which was tried first and mostly ended up hidden behind the
+  keyboard. The scene's SVG viewBox (`0 0 200 220`) deliberately matches `.hangman-drawing-wrap`'s own
+  `aspect-ratio: 200 / 220` so shapes scale proportionally instead of being stretched.
+  `.hangman-drawing-wrap` needs `isolation: isolate` for this — a `position: relative` ancestor alone
+  does **not** create a new stacking context, so a `z-index: -1` child without it can escape to a
+  further-out ancestor's stacking context instead of staying behind just its intended siblings.
 
 ### PWA / service worker gotchas
 

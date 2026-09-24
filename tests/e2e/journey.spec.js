@@ -67,6 +67,26 @@ test.describe("Rymdresan: bränsle och planetbyte", () => {
     expect(planetWords).toContain(word);
   });
 
+  test("varje planet ritar en egen temascen bakom teckningen", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#screen-intro").click();
+    await page.locator("#select-hangman-btn").click();
+
+    for (let i = 0; i < 12; i++) {
+      await page.evaluate((planetIndex) => {
+        journeyState.planetIndex = planetIndex;
+        startNewHangmanRound();
+      }, i);
+
+      const scene = page.locator("#hangman-planet-scene svg");
+      await expect(scene).toBeAttached();
+      const shapeCount = await page.evaluate(
+        () => document.querySelectorAll("#hangman-planet-scene svg > g > *").length
+      );
+      expect(shapeCount).toBeGreaterThan(0);
+    }
+  });
+
   test("full bränsletank byter \"Nytt ord\"-knappen mot en lyft-knapp, och lyftet tar med till nästa planet", async ({ page }) => {
     await page.goto("/");
     await page.locator("#screen-intro").click();
