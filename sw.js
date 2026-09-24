@@ -2,13 +2,14 @@
 // gången sidan öppnas, så att spelet fungerar även utan internet sen.
 // CACHE_NAME höjs varje gång sparade filer ändras i grunden — det tvingar
 // gamla telefoner att kasta sin gamla cache och hämta allt på nytt.
-const CACHE_NAME = "luffarschack-v7";
+const CACHE_NAME = "luffarschack-v8";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./script.js",
   "./stars.js",
+  "./sound.js",
   "./hangman.js",
   "./manifest.json",
   "./icon-192.png",

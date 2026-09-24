@@ -124,7 +124,8 @@ function guessLetter(letter) {
   lastGuessedLetter = letter;
   hangmanState.guessedLetters.push(letter);
 
-  if (!hangmanState.word.includes(letter)) {
+  const wasCorrect = hangmanState.word.includes(letter);
+  if (!wasCorrect) {
     hangmanState.wrongGuesses++;
   }
 
@@ -138,9 +139,15 @@ function guessLetter(letter) {
   if (wordGuessed) {
     hangmanState.status = "won";
     hangmanResultTextEl.textContent = "Ni gissade ordet!";
+    playWin();
   } else if (hangmanState.wrongGuesses >= MAX_WRONG_GUESSES) {
     hangmanState.status = "lost";
     hangmanResultTextEl.textContent = `Gubben hann hänga. Ordet var: ${hangmanState.word}`;
+    playLose();
+  } else {
+    // Vinst/förlust-ljudet räcker för den sista gissningen — annars
+    // hade man hört både "rätt/fel"-tonen och fanfaren/dunset på en gång.
+    wasCorrect ? playCorrectGuess() : playWrongGuess();
   }
 
   if (hangmanState.status !== "playing") {
@@ -155,10 +162,12 @@ function guessLetter(letter) {
 }
 
 document.getElementById("hangman-again-btn").addEventListener("click", () => {
+  playClick();
   startNewHangmanRound();
 });
 
 document.getElementById("hangman-switch-btn").addEventListener("click", () => {
+  playClick();
   showScreen("screen-game-select");
 });
 

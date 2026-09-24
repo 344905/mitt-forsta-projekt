@@ -150,6 +150,41 @@ h2 {
   box-shadow: 0 0 0 3px #ff5555, 1px 1px 0 3px #000;
 }
 
+/* Global ljud-knapp, spegelvänd mot .exit-btn (övre vänstra hörnet
+   istället för höger) så de aldrig konkurrerar om samma tryckyta.
+   Se docs/design/2026-09-24-ljud-toggle-placering.md. */
+.sound-toggle-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: #0d1a2a;
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent), 3px 3px 0 3px #000;
+  cursor: pointer;
+}
+
+.sound-toggle-btn:hover {
+  background: #16263a;
+}
+
+.sound-toggle-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 3px var(--accent), 1px 1px 0 3px #000;
+}
+
+.sound-toggle-btn.muted {
+  color: #666;
+  box-shadow: 0 0 0 3px #666, 3px 3px 0 3px #000;
+}
+
 .score-row {
   display: flex;
   gap: 24px;
