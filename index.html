@@ -41,6 +41,7 @@
       <h1>Välj spel</h1>
       <button id="select-tictactoe-btn" class="primary-btn">Luffarschack</button>
       <button id="select-hangman-btn" class="primary-btn">Hänga gubbe</button>
+      <button id="select-album-btn" class="primary-btn">📖 Rymdalbum</button>
       <p id="game-select-journey-status" class="journey-status"></p>
     </section>
 
@@ -148,12 +149,25 @@
       </div>
     </section>
 
+    <section id="screen-album" class="screen">
+      <h1>📖 Rymdalbum</h1>
+      <h2 id="album-planet-name" class="planet-name"></h2>
+      <p id="album-count" class="journey-status"></p>
+      <div id="album-grid" class="album-grid"></div>
+      <div class="album-nav">
+        <button id="album-prev-btn" class="primary-btn" aria-label="Föregående planet">◀</button>
+        <button id="album-next-btn" class="primary-btn" aria-label="Nästa planet">▶</button>
+      </div>
+      <button id="album-back-btn" class="primary-btn">Tillbaka</button>
+    </section>
+
   </div>
 
   <script src="stars.js"></script>
   <script src="sound.js"></script>
   <script src="script.js"></script>
   <script src="journey.js"></script>
+  <script src="album.js"></script>
   <script src="hangman.js"></script>
 </body>
 </html>

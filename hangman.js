@@ -478,6 +478,11 @@ function guessLetter(letter) {
     // Bränsle för en avklarad omgång — vinst ger mer, men en förlust ger
     // också bränsle. Ingen ska känna sig fast bara för att ordet var svårt.
     readyToLaunch = addFuel(hangmanState.status === "won" ? FUEL_PER_WIN : FUEL_PER_LOSS);
+    // Rymdalbumet (album.js): ordet sparas oavsett vinst eller förlust —
+    // man har sett stavningen ändå (facit vid förlust, se
+    // renderHangmanWord()). Samma "en gång per avklarad omgång"-ställe
+    // som bränslet ovan, ingen egen koll behövs.
+    recordDiscoveredWord(getCurrentPlanet().id, hangmanState.word);
     renderFuelMeter();
     renderGameSelectJourneyStatus();
     hangmanAgainBtnEl.textContent = readyToLaunch ? "🚀 Lyft till nästa planet!" : "Nytt ord";

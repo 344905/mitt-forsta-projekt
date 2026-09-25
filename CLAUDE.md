@@ -61,7 +61,7 @@ gh api repos/344905/mitt-forsta-projekt/pages/builds/latest
 No framework, no build step:
 
 - **`index.html`** — every "screen" for both games (game-select, Luffarschack's welcome/game/
-  series-winner/play-again/goodbye, Hänga gubbe's single game screen) lives as a sibling
+  series-winner/play-again/goodbye, Hänga gubbe's single game screen, the album) lives as a sibling
   `<section class="screen">` inside `#app`; only one has the `.active` class at a time (toggled by
   `showScreen()`, defined in `script.js` but used by both games). There is no router. Luffarschack's
   `screen-game` section is never swapped away when a match ends, and Hänga gubbe's
@@ -73,9 +73,12 @@ No framework, no build step:
   to `state` after every change.
 - **`hangman.js`** — Hänga gubbe's state/logic, deliberately kept in its own file rather than
   appended to `script.js`, so the two games can't accidentally break each other. Same pattern as
-  `script.js`: a `hangmanState` object + `render*()` functions. `WORDS` is the user's own hand-picked
-  Swedish word list — ask before replacing or filtering it (it intentionally includes very short
-  words like "vi"/"du"/"en").
+  `script.js`: a `hangmanState` object + `render*()` functions. Words come from the current planet's
+  list in `journey.js` (`pickRandomWord()`), not a file-local list — see "The space journey" below.
+- **`journey.js`** — the shared space-journey state/data (`PLANETS`, fuel, per-planet word lists and
+  picture clues) — see "The space journey" below.
+- **`album.js`** — the shared word-collection screen built on top of the journey's planets — see
+  "The album" below.
 - **`style.css`** — neon color theme via CSS variables (`--john-color`, `--vera-color`, `--accent`,
   `--danger-color` for Hänga gubbe's figure), "Press Start 2P" pixel font, and hand-rolled chunky
   borders using stacked `box-shadow` (no border images). Per-player custom SVG cursors
@@ -285,6 +288,40 @@ grew out of before touching `PLANETS`.
   `.hangman-drawing-wrap` needs `isolation: isolate` for this — a `position: relative` ancestor alone
   does **not** create a new stacking context, so a `z-index: -1` child without it can escape to a
   further-out ancestor's stacking context instead of staying behind just its intended siblings.
+
+### The album (`album.js`)
+
+A **shared** (not per-player, same "Rivalerna" rule as the journey above) collection of every word
+John and Vera have discovered in Hänga gubbe — win or loss counts as "discovered", since the point is
+what they've seen spelled out, not who guessed it. Reached from `screen-game-select`'s "📖 Rymdalbum"
+button, its own screen `screen-album`, back to game-select via `Tillbaka`.
+
+- `albumState` (`{ [planetId]: ["hund", ...] }`, lowercase words) persists to `localStorage`
+  (`ALBUM_STORAGE_KEY = "rymdarkaden-album-v1"`) via the same try/catch load/save pattern as
+  `journey.js`. **`loadAlbumState()` validates the shape of what it loads** (every value must be an
+  array of strings, otherwise that planet's entry is dropped) — a plain `typeof === "object"` check
+  isn't enough here, because `recordDiscoveredWord()` is called from inside `guessLetter()`'s win/loss
+  branch; if it threw on malformed data, the round would never show its result. A parse/shape problem
+  must only ever cost the album, never break the game it's called from.
+- `recordDiscoveredWord(planetId, word)` is called once per completed round (win or loss) from
+  `guessLetter()`, right next to where fuel is already awarded — no separate "did the round just end"
+  check needed, and it's safe to call because `getCurrentPlanet()` at that point is still the planet
+  the round was actually played on (`advanceToNextPlanet()` only runs later, from
+  `launchToNextPlanet()`, never from `addFuel()`).
+- Word lists do get edited (it's already happened once). `getDiscoveredWordsForPlanet(planet)` filters
+  saved words against that planet's **current** `words` list before counting/displaying anything, so a
+  word removed from a list later can't inflate the "N av M" count past M or keep a planet marked
+  "visited" for a word that's no longer there.
+- `getVisitedPlanetIds()` is the only planets the `◀`/`▶` arrows in `screen-album` can reach — a planet
+  with zero discovered words is never shown, not even as "locked". `albumCurrentPlanetId` is reset to
+  `null` when the album is opened (not just once ever) so it re-derives its default (the planet you're
+  currently travelling to, if already visited, else the first visited one) even if the journey has
+  moved on since the album was last open.
+- A word longer than 8 characters gets `.album-card.wide` (`grid-column: span 2`) instead of letting
+  `overflow-wrap: anywhere` break it mid-word — this is a reading-practice screen, so a word like
+  "fjärrkontroll" splitting across two lines defeats the point.
+- `screen-album` deliberately gets no planet color tint: the `#app.on-planet[data-screen=...]` rule
+  (see above) only matches `data-screen="screen-hangman-game"`.
 
 ### PWA / service worker gotchas
 
