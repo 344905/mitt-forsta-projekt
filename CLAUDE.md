@@ -200,6 +200,28 @@ clipping, both fixed once already — don't reintroduce them:
   property (`animation-delay: calc(var(--i) * 120ms)`), indexed only among the missed letters, set in
   `renderHangmanWord()` — compute `hangmanState.status` before calling it, not after, so it renders
   the outcome in one pass instead of two.
+- **Turn badge, keyboard glow, praise bubble**: `renderHangmanTurnIndicator()` is the single place that
+  keeps three things in sync with `hangmanState.currentPlayer` — the turn text, a small J/V `.turn-badge`,
+  and `.hangman-keyboard`'s `john`/`vera` class (a thin outer glow; the cyan/red correct/wrong key colors
+  are unrelated and untouched). It's called at both places `currentPlayer` changes: round start
+  (random starting player) and mid-round turn switches — don't add a third place that changes
+  `currentPlayer` without also calling it. `showPraiseBubble()`/`hidePraiseBubble()` show a short,
+  absolutely-positioned bubble (adds zero layout height) naming the current guesser after a guess —
+  stars for a correct guess (one per occurrence of the letter in the word, matching the count passed
+  to `playCorrectGuess(count)`), none for a wrong one — but **never** on the round-deciding guess; the
+  win/loss branch in `guessLetter()` calls `hidePraiseBubble()` itself so a stale bubble never sits
+  next to the result text. **Product rule, not just a style choice**: nothing here is ever counted or
+  stored per player — no tally in the DOM, no per-child key in `localStorage`. The bubble only ever
+  reports the *current* guess, in the moment. This is the same "no comparison between John and Vera"
+  rule behind rejecting "Rivalerna" below — if you're tempted to add a running total ("Vera: 5 rätt"),
+  don't.
+- `sparkBurst()` (script.js) takes optional `sparkCount` (default 10) and `maxDistance` (default 60,
+  px) parameters. The per-letter praise sparks use a much shorter `maxDistance` (18px) than the
+  word-win/series-win bursts — a single letter is a small target, and the full 40-60px range could
+  fly a spark past the edge of a 320px screen from an edge letter on a long word (e.g. the last letter
+  of "fjärrkontroll"), which is exactly the kind of momentary horizontal-scroll bug this file warns
+  about elsewhere; it just wouldn't show up in a `scrollWidth` check taken after the 0.7s animation
+  finishes.
 
 ### The space journey (`journey.js`)
 

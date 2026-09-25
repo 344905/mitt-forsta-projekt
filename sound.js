@@ -76,8 +76,29 @@ function playTone({ freq, duration, type = "square", sweepTo = null, startAt = 0
   }
 }
 
-function playCorrectGuess() {
-  playTone({ freq: 500, sweepTo: 800, duration: 0.12, type: "square" });
+// `count` = antalet gånger den gissade bokstaven förekommer i ordet (samma
+// tal som antalet ⭐ i berömbubblan i hangman.js, se guessLetter()). Se
+// docs/design/2026-09-25-ljud-tur-berom.md för hela specen bakom talen
+// nedan. Standardvärdet 1 gör funktionen bakåtkompatibel om något anrop
+// råkar sakna argumentet.
+function playCorrectGuess(count = 1) {
+  if (count <= 1) {
+    // Den absolut vanligaste gissningen (en bokstav som bara finns en
+    // gång) låter som innan `count` fanns — bara upprepade bokstäver får
+    // extra pling.
+    playTone({ freq: 500, sweepTo: 800, duration: 0.12, type: "square" });
+    return;
+  }
+
+  // 2+ förekomster: en stigande "räkne-stege" av korta pling istället för
+  // en enda glidande ton, så upprepningen hörs. Tak på 3 toner oavsett hur
+  // många fler gånger bokstaven förekommer — se designdokumentet för
+  // motiveringen (håller ljudet under en halv sekund).
+  const STAIRCASE = [659.3, 784.0, 1046.5]; // E5, G5, C6 — en oktav över playWin(), utan grundtonen
+  const notesToPlay = Math.min(count, STAIRCASE.length);
+  for (let i = 0; i < notesToPlay; i++) {
+    playTone({ freq: STAIRCASE[i], duration: 0.09, type: "square", startAt: i * 0.11 });
+  }
 }
 
 function playWrongGuess() {

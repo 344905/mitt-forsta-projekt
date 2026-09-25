@@ -40,10 +40,33 @@ function pickRandomWord() {
 // spellogik beror på den, så den behöver inte vara del av hangmanState.
 let lastGuessedLetter = null;
 
+// --- Iteration 2: tur-märke, tangentbordsglöd och berömbubbla ---
+// Rent kosmetiskt/hörbart, ingen spellogik — se
+// docs/design/2026-09-25-produktteam-3-iterationer.md ("ITERATION 2").
+// Medvetet inget räknat/sparat någonstans (ingen räknare per barn i DOM
+// eller localStorage): berömmet gäller bara den aktuella gissningen.
+const PRAISE_TEXTS = ["Snyggt", "Bra", "Toppen", "Rätt"];
+// Färre gnistor än standardskuren (10) för de små per-bokstav-gnistorna,
+// så de inte tävlar visuellt med den större skuren på hela ordet vid vinst.
+const PRAISE_SPARK_COUNT = 4;
+// Kortare räckvidd än standardskurens 40-60px — en enda bokstav är ett
+// litet mål, och en kantbokstav på ett långt ord (se sparkBurst() i
+// script.js) skulle annars kunna fara utanför skärmen på 320px.
+const PRAISE_SPARK_MAX_DISTANCE = 18;
+
+function playerClassName(player) {
+  return player === "John" ? "john" : "vera";
+}
+
+function playerColorVar(player) {
+  return player === "John" ? "var(--john-color)" : "var(--vera-color)";
+}
+
 // --- DOM-referenser ---
 const hangmanTurnIndicatorEl = document.getElementById("hangman-turn-indicator");
 const hangmanWordEl = document.getElementById("hangman-word");
 const hangmanClueEl = document.getElementById("hangman-clue");
+const hangmanStageEl = document.querySelector(".hangman-stage");
 const hangmanKeyboardEl = document.getElementById("hangman-keyboard");
 const hangmanResultEl = document.getElementById("hangman-result");
 const hangmanResultTextEl = document.getElementById("hangman-result-text");
@@ -59,6 +82,59 @@ const travelFromNameEl = document.getElementById("travel-from-name");
 const travelToNameEl = document.getElementById("travel-to-name");
 const hangmanScreenEl = document.getElementById("screen-hangman-game");
 const appEl = document.getElementById("app");
+
+// Kort bubbla ovanpå .hangman-stage (absolut positionerad, tar alltså
+// ingen höjd i layouten) som ger personligt beröm i gissarens färg —
+// `Snyggt, Vera!` plus en ⭐ per förekomst av bokstaven vid rätt gissning,
+// `Bra försök!` utan stjärnor vid fel. Visas aldrig på den gissning som
+// avgör omgången — vinst/förlust-mikrocopyn (guessLetter()) tar över då,
+// och tar själv bort en kvarhängande bubbla via hidePraiseBubble().
+// Tar bort en ev. synlig bubbla direkt (inte bara vid dess egen timeout) —
+// anropas både innan en ny bubbla läggs till (så snabba gissningar inte
+// staplar flera) och när omgången avgörs (så en gammal "Bra försök!"/
+// beröm-bubbla aldrig syns kvar bredvid vinst- eller förlusttexten).
+function hidePraiseBubble() {
+  const existing = hangmanStageEl.querySelector(".praise-bubble");
+  if (existing) existing.remove();
+}
+
+function showPraiseBubble({ correct, player, count }) {
+  const bubble = document.createElement("div");
+  bubble.className = `praise-bubble ${playerClassName(player)}`;
+
+  const textEl = document.createElement("p");
+  textEl.className = "praise-bubble-text";
+  if (correct) {
+    const template = PRAISE_TEXTS[Math.floor(Math.random() * PRAISE_TEXTS.length)];
+    textEl.textContent = `${template}, ${player}!`;
+    bubble.appendChild(textEl);
+    const starsEl = document.createElement("p");
+    starsEl.className = "praise-bubble-stars";
+    starsEl.textContent = "⭐".repeat(count);
+    bubble.appendChild(starsEl);
+  } else {
+    textEl.textContent = "Bra försök!";
+    bubble.appendChild(textEl);
+  }
+
+  hidePraiseBubble();
+  hangmanStageEl.appendChild(bubble);
+  setTimeout(() => bubble.remove(), 1200);
+}
+
+// En liten gnistskur per nyss avslöjad förekomst av den gissade bokstaven
+// (t.ex. båda A:na i "BANAN"), i gissarens färg — samma sparkBurst()-
+// hjälpfunktion som vinst-skuren och Luffarschackets seriesvinst, bara
+// med färre gnistor per anrop.
+function sparkNewlyRevealedLetters(letter, player) {
+  const color = playerColorVar(player);
+  const letterSpans = hangmanWordEl.children;
+  hangmanState.word.split("").forEach((wordLetter, i) => {
+    if (wordLetter === letter) {
+      sparkBurst(letterSpans[i], color, PRAISE_SPARK_COUNT, PRAISE_SPARK_MAX_DISTANCE);
+    }
+  });
+}
 
 // Sant mellan att en omgång avgjorts med full bränsletank och att man
 // faktiskt tryckt vidare — styr om "Nytt ord"-knappen startar en vanlig
@@ -79,8 +155,27 @@ function buildHangmanKeyboard() {
 }
 
 function renderHangmanTurnIndicator() {
-  hangmanTurnIndicatorEl.textContent = `${hangmanState.currentPlayer}s tur att gissa`;
-  hangmanTurnIndicatorEl.className = `turn-indicator ${hangmanState.currentPlayer === "John" ? "john" : "vera"}`;
+  const playerClass = playerClassName(hangmanState.currentPlayer);
+  hangmanTurnIndicatorEl.className = `turn-indicator ${playerClass}`;
+  hangmanTurnIndicatorEl.innerHTML = "";
+
+  // Turmärke: en liten ruta med bokstaven J/V i spelarens färg, FÖRE
+  // texten — så den som inte läser än ser vems tur det är på färg och
+  // bokstav, inte bara på en textrad (samma idé som phase-hint-ikonen
+  // i Luffarschack).
+  const badge = document.createElement("span");
+  badge.className = `turn-badge ${playerClass}`;
+  badge.textContent = hangmanState.currentPlayer === "John" ? "J" : "V";
+  hangmanTurnIndicatorEl.appendChild(badge);
+  hangmanTurnIndicatorEl.appendChild(
+    document.createTextNode(`${hangmanState.currentPlayer}s tur att gissa`)
+  );
+
+  // Tangentbordets tunna glöd byter färg med samma tur — en andra,
+  // färgbaserad signal utöver märket ovan. Tangenternas egna rätt/fel-
+  // färger (cyan/röd) rörs inte.
+  hangmanKeyboardEl.classList.toggle("john", playerClass === "john");
+  hangmanKeyboardEl.classList.toggle("vera", playerClass === "vera");
 }
 
 function renderHangmanWord() {
@@ -301,6 +396,10 @@ function startNewHangmanRound({ switchScreen = true } = {}) {
   hangmanState.status = "playing";
   lastGuessedLetter = null;
 
+  // En ev. berömbubbla från den förra omgången (t.ex. fortfarande fram-
+  // tonad när "Nytt ord" trycks snabbt) ska inte hänga kvar in i den nya.
+  hidePraiseBubble();
+
   buildHangmanKeyboard();
   renderHangmanTurnIndicator();
   renderHangmanWord();
@@ -322,7 +421,15 @@ function guessLetter(letter) {
   lastGuessedLetter = letter;
   hangmanState.guessedLetters.push(letter);
 
+  // Vem som gissade DENNA bokstav — sparas innan turen ev. växlar längre
+  // ner, så berömbubblan/ljudet pekar på rätt spelare.
+  const guesser = hangmanState.currentPlayer;
   const wasCorrect = hangmanState.word.includes(letter);
+  // Antal förekomster av bokstaven i ordet — samma tal driver både
+  // ⭐-raden i berömbubblan och antalet "pling" i playCorrectGuess().
+  const occurrenceCount = wasCorrect
+    ? hangmanState.word.split("").filter((wordLetter) => wordLetter === letter).length
+    : 0;
   if (!wasCorrect) {
     hangmanState.wrongGuesses++;
     shakeDrawing(); // visuell motsvarighet till playWrongGuess()/playLose()-ljudet
@@ -345,16 +452,26 @@ function guessLetter(letter) {
   renderHangmanDrawing();
 
   if (hangmanState.status === "won") {
+    hidePraiseBubble();
     hangmanResultTextEl.textContent = `Ni klarade det! 🚀+${FUEL_PER_WIN}`;
     playWin();
     sparkBurst(hangmanWordEl, "var(--accent)");
   } else if (hangmanState.status === "lost") {
+    hidePraiseBubble();
     hangmanResultTextEl.textContent = `Nästan! Så stavas det. 🚀+${FUEL_PER_LOSS}`;
     playLose();
   } else {
-    // Vinst/förlust-ljudet räcker för den sista gissningen — annars
-    // hade man hört både "rätt/fel"-tonen och fanfaren/dunset på en gång.
-    wasCorrect ? playCorrectGuess() : playWrongGuess();
+    // Vinst/förlust-ljudet OCH -mikrocopyn räcker för den sista gissningen
+    // — annars hade man både hört och sett dubbel respons (rätt/fel-tonen
+    // + fanfaren/dunset, berömbubblan + resultattexten) på samma gissning.
+    if (wasCorrect) {
+      playCorrectGuess(occurrenceCount);
+      showPraiseBubble({ correct: true, player: guesser, count: occurrenceCount });
+      sparkNewlyRevealedLetters(letter, guesser);
+    } else {
+      playWrongGuess();
+      showPraiseBubble({ correct: false, player: guesser });
+    }
   }
 
   if (hangmanState.status !== "playing") {

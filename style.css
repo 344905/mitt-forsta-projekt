@@ -216,6 +216,34 @@ h2 {
   text-shadow: 0 0 6px var(--vera-color);
 }
 
+/* Turmärke i Hänga gubbe: en liten ruta med J/V i spelarens färg, FÖRE
+   texten i #hangman-turn-indicator (se renderHangmanTurnIndicator() i
+   hangman.js) — så den som inte läser än ser vems tur det är på färg och
+   bokstav, inte bara på en textrad. Samma chunky ram-stil som resten av
+   appen (box-shadow, inte border-image). */
+.turn-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6em;
+  height: 1.6em;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: #1a1a2e;
+}
+
+.turn-badge.john {
+  color: var(--john-color);
+  text-shadow: 0 0 4px var(--john-color);
+  box-shadow: 0 0 0 2px var(--john-color), 0 0 0 3px #000;
+}
+
+.turn-badge.vera {
+  color: var(--vera-color);
+  text-shadow: 0 0 4px var(--vera-color);
+  box-shadow: 0 0 0 2px var(--vera-color), 0 0 0 3px #000;
+}
+
 /* Ikon + text som visar om man ska lägga ut en ny bricka eller dra en
    befintlig. Fungerar på både mus och touch, till skillnad från den
    blinkande muspekaren, och hjälper spelare som inte kan läsa än. */
@@ -501,6 +529,7 @@ h2 {
    blir högre — viktigt på korta skärmar där Hänga gubbe redan har flest
    staplade delar. */
 .hangman-stage {
+  position: relative; /* ankare för .praise-bubble, se längre ner */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -521,6 +550,55 @@ h2 {
   line-height: 1;
   background: #1a1a2e;
   box-shadow: 0 0 0 3px var(--accent), 4px 4px 0 3px #000;
+}
+
+/* Berömbubblan (rätt/fel gissning, se showPraiseBubble() i hangman.js):
+   absolut positionerad OVANPÅ .hangman-stage (som har position: relative),
+   och stannar därför inom stagets egen box istället för att sticka ut
+   ovanför/under den — annars hade en förälders scrollHeight kunnat växa
+   av en absolut positionerad avkomma som visuellt sticker ut, precis den
+   typen av dold vertikal scroll-bugg CLAUDE.md varnar för. `max-width`
+   håller den smal även på en 320px-skärm. `pointer-events: none` så den
+   aldrig kan vara i vägen för ett klick på tangentbordet under den. */
+.praise-bubble {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(190px, 78vw);
+  padding: 6px 10px;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 3px var(--accent), 4px 4px 0 3px #000;
+  text-align: center;
+  pointer-events: none;
+  animation: praise-bubble-fade 1.2s ease both;
+}
+
+.praise-bubble-text {
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.praise-bubble-stars {
+  font-size: 0.85rem;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.praise-bubble.john .praise-bubble-text {
+  color: var(--john-color);
+  text-shadow: 0 0 4px var(--john-color);
+}
+
+.praise-bubble.vera .praise-bubble-text {
+  color: var(--vera-color);
+  text-shadow: 0 0 4px var(--vera-color);
+}
+
+@keyframes praise-bubble-fade {
+  0%, 75% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Samma teknik som .board-wrap: storleken sätts på wrappern, inte på
@@ -630,6 +708,7 @@ h2 {
 }
 
 .hangman-letter {
+  position: relative; /* ankare för per-bokstav-gnistorna, se sparkNewlyRevealedLetters() */
   display: inline-block;
   min-width: 0.9em;
   color: var(--accent);
@@ -684,6 +763,20 @@ h2 {
   grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
   gap: 5px;
   width: 100%;
+}
+
+/* Tunn yttre glöd i spelarens färg, samma tur som turmärket ovanför
+   (klassen sätts av renderHangmanTurnIndicator() i hangman.js). Bara en
+   glöd runt HELA tangentbordet — de enskilda tangenternas egna rätt/fel-
+   färger (cyan/röd, .hangman-key.correct/.wrong) rörs inte. box-shadow
+   påverkar bara målningen, inte layouten, så det lägger inte till någon
+   ny scrollWidth/-Height. */
+.hangman-keyboard.john {
+  box-shadow: 0 0 10px 1px var(--john-color);
+}
+
+.hangman-keyboard.vera {
+  box-shadow: 0 0 10px 1px var(--vera-color);
 }
 
 .hangman-key {

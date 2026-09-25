@@ -195,17 +195,24 @@ function showScreen(id) {
 // Liten "gnist-skur": ett gäng punkter som far ut från mitten av
 // `container` och tonar bort. Ren CSS-animation (transform+opacity),
 // inga bibliotek. Delas av båda spelen (seriesvinst i Luffarschack,
-// ordvinst i Hänga gubbe) — `container` måste ha `position: relative`
-// för att punkterna ska hamna rätt.
-function sparkBurst(container, color) {
+// ordvinst och per-bokstav-beröm i Hänga gubbe) — `container` måste ha
+// `position: relative` för att punkterna ska hamna rätt. `sparkCount` är
+// valfri (standard 10) så en mindre skur (t.ex. de små gnistorna på varje
+// nyss gissad bokstav i hangman.js) kan be om färre punkter utan att ändra
+// standardbeteendet för de befintliga anropen.
+// `maxDistance` capar hur långt gnistorna far (px) — standardvärdet (40-60)
+// passar en helords-/seriesvinst, men är för långt för en enda bokstav:
+// vid en kantbokstav på ett långt ord (t.ex. sista T:et i "fjärrkontroll"
+// på en 320px-skärm) skulle gnistorna annars fara utanför skärmens kant
+// och orsaka precis den korta horisontella scrollen CLAUDE.md varnar för.
+function sparkBurst(container, color, sparkCount = 10, maxDistance = 60) {
   const burst = document.createElement("div");
   burst.className = "spark-burst";
-  const SPARK_COUNT = 10;
-  for (let i = 0; i < SPARK_COUNT; i++) {
+  for (let i = 0; i < sparkCount; i++) {
     const spark = document.createElement("span");
     spark.className = "spark";
-    const angle = (360 / SPARK_COUNT) * i + (Math.random() * 20 - 10);
-    const distance = 40 + Math.random() * 20;
+    const angle = (360 / sparkCount) * i + (Math.random() * 20 - 10);
+    const distance = maxDistance * 0.67 + Math.random() * (maxDistance * 0.33);
     spark.style.setProperty("--spark-angle", `${angle}deg`);
     spark.style.setProperty("--spark-distance", `${distance}px`);
     spark.style.background = color;
