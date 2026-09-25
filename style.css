@@ -737,20 +737,78 @@ h2 {
    stund och alltid leder vidare till en ny omgång automatiskt. */
 .launch-overlay {
   position: absolute;
-  inset: 0;
+  /* Lite utanför skärmens egen ruta: tangentbordets glöd-ramar och
+     rubrikens text-shadow sticker annars ut några pixlar runt kanterna.
+     Panelens padding är minst 16px, så -14px håller sig inom panelen. */
+  inset: -14px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 14px;
   text-align: center;
-  padding: 24px;
+  padding: 24px 12px;
   background: var(--panel-bg);
   font-size: 0.85rem;
   color: var(--accent);
   text-shadow: 0 0 6px var(--accent);
+  cursor: pointer;
 }
 
 .launch-overlay.hidden {
   display: none;
+}
+
+/* Resegrafiken: se buildTravelSceneSVG (journey.js) och
+   launchToNextPlanet (hangman.js). */
+.travel-scene {
+  width: 100%;
+  max-width: 380px;
+}
+
+.travel-scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.travel-planet {
+  filter: drop-shadow(0 0 6px var(--planet-glow));
+}
+
+/* Namnen under planeterna — destinationen till vänster, avresan till
+   höger, samma ordning som i grafiken. */
+.travel-names {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 380px;
+  font-size: 0.55rem;
+  text-shadow: none;
+}
+
+.launch-skip-hint {
+  font-size: 0.55rem;
+  color: var(--text);
+  text-shadow: none;
+  opacity: 0.55;
+}
+
+/* Raketmotorernas eld fladdrar: skalas i längdled från fästet mot raketen
+   (fill-box + höger kant = där lågan sitter ihop med raketen). */
+.flame {
+  transform-box: fill-box;
+  transform-origin: right center;
+  animation: flame-flicker 0.12s ease-in-out infinite alternate;
+}
+
+.flame-inner {
+  animation-duration: 0.08s;
+}
+
+@keyframes flame-flicker {
+  from { transform: scaleX(0.7); opacity: 0.8; }
+  to { transform: scaleX(1.25); opacity: 1; }
 }
 
 #screen-hangman-game {

@@ -186,6 +186,109 @@ function buildPlanetSceneSVG(planet) {
   </svg>`;
 }
 
+// --- Resegrafiken mellan planeter (visas i #hangman-launch-overlay) ---
+
+// Hur varje planet ser ut som en rund himlakropp under resan: grundfärg +
+// ett mönster i temat (fläckar för djur, kratrar för dinosaurier, vågor
+// för havet, ...). Egen karta istället för fler fält i PLANETS, så
+// resegrafikens utseende är samlat på ett ställe.
+const PLANET_LOOKS = {
+  djur: { base: "#3f8f2a", pattern: "spots", patternColor: "#d9a441" },
+  dinosaurie: { base: "#b5532b", pattern: "craters", patternColor: "#5c2a14" },
+  mat: { base: "#f2b632", pattern: "dots", patternColor: "#fff3c4" },
+  trafik: { base: "#2f7fb8", pattern: "stripes", patternColor: "#e8f1f8" },
+  skola: { base: "#7b4bb0", pattern: "grid", patternColor: "#e6d6ff" },
+  sport: { base: "#3d9b4f", pattern: "bands", patternColor: "#bff5c6" },
+  robot: { base: "#6f7f8a", pattern: "grid", patternColor: "#c9d6de" },
+  hav: { base: "#1f8fb0", pattern: "waves", patternColor: "#b9f0ff" },
+  vader: { base: "#6fa8dc", pattern: "bands", patternColor: "#e8f4ff" },
+  kropp: { base: "#d9557f", pattern: "dots", patternColor: "#ffd1df" },
+  natur: { base: "#3f7d45", pattern: "spots", patternColor: "#8fd694" },
+  musik: { base: "#9b4fb0", pattern: "waves", patternColor: "#f0c8ff" },
+};
+
+// Innehållet i en 24x24-ruta som upprepas över planetens yta.
+const PLANET_PATTERNS = {
+  spots: (c) => `<circle cx="6" cy="6" r="4" fill="${c}" /><circle cx="18" cy="16" r="3" fill="${c}" /><circle cx="9" cy="20" r="2" fill="${c}" />`,
+  craters: (c) => `<circle cx="7" cy="8" r="4" fill="none" stroke="${c}" stroke-width="2" /><circle cx="18" cy="18" r="3" fill="none" stroke="${c}" stroke-width="2" />`,
+  dots: (c) => `<circle cx="6" cy="6" r="2" fill="${c}" /><circle cx="18" cy="18" r="2" fill="${c}" />`,
+  stripes: (c) => `<path d="M-6,6 l12,-12 M0,24 l24,-24 M18,30 l12,-12" stroke="${c}" stroke-width="4" />`,
+  grid: (c) => `<path d="M0,0 H24 M0,0 V24" stroke="${c}" stroke-width="2" fill="none" />`,
+  waves: (c) => `<path d="M0,12 q6,-6 12,0 t12,0" stroke="${c}" stroke-width="3" fill="none" />`,
+  bands: (c) => `<rect x="0" y="0" width="24" height="7" fill="${c}" />`,
+};
+
+function buildPlanetOrbSVG(planet, cx, cy, r) {
+  const look = PLANET_LOOKS[planet.id];
+  const patternId = `travel-pattern-${planet.id}`;
+  const shadeId = `travel-shade-${planet.id}`;
+  return `
+    <defs>
+      <pattern id="${patternId}" width="24" height="24" patternUnits="userSpaceOnUse">${PLANET_PATTERNS[look.pattern](look.patternColor)}</pattern>
+      <radialGradient id="${shadeId}" cx="35%" cy="35%" r="70%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25" />
+        <stop offset="60%" stop-color="#000000" stop-opacity="0" />
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.55" />
+      </radialGradient>
+    </defs>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${look.base}" />
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${patternId})" />
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${shadeId})" stroke="${planet.sceneColor}" stroke-width="2" class="travel-planet" style="--planet-glow: ${planet.sceneColor}" />
+  `;
+}
+
+// Raketen ritas med nosen åt +x och centrerad kring (0,0) — hangman.js
+// flyttar och vrider den längs banan. Symmetrisk kring sin egen axel, så
+// den ser rätt ut även när den vrids ~180° (resan går höger → vänster).
+const ROCKET_SVG = `
+  <g class="travel-rocket">
+    <path class="flame flame-outer" d="M -14,-4 L -32,0 L -14,4 Z" fill="#ff7a1a" />
+    <path class="flame flame-inner" d="M -14,-2.5 L -24,0 L -14,2.5 Z" fill="#ffe14d" />
+    <path d="M -14,-6 L -21,-12 L -8,-6 Z" fill="#ff3355" stroke="#000" stroke-width="1" />
+    <path d="M -14,6 L -21,12 L -8,6 Z" fill="#ff3355" stroke="#000" stroke-width="1" />
+    <path d="M -14,-6 L 8,-6 Q 18,0 8,6 L -14,6 Z" fill="#f2f2f2" stroke="#000" stroke-width="1" />
+    <circle cx="1" cy="0" r="2.8" fill="#00eaff" stroke="#000" stroke-width="1" />
+  </g>
+`;
+
+// Hela reseskärmen: planeten man lämnar till HÖGER, nästa planet till
+// VÄNSTER, en båge mellan dem och raketen. Strecket (.travel-trail) går i
+// en övertoning från avresans färg till destinationens, och ritas fram
+// bakom raketen av hangman.js.
+const TRAVEL_FROM = { x: 250, y: 80 };
+const TRAVEL_TO = { x: 50, y: 80 };
+const TRAVEL_PLANET_R = 32;
+
+function buildTravelSceneSVG(fromPlanet, toPlanet) {
+  const startX = TRAVEL_FROM.x - TRAVEL_PLANET_R - 4;
+  const endX = TRAVEL_TO.x + TRAVEL_PLANET_R + 4;
+  const route = `M ${startX},${TRAVEL_FROM.y} Q 150,18 ${endX},${TRAVEL_TO.y}`;
+
+  let stars = "";
+  for (let i = 0; i < 18; i++) {
+    const x = (Math.random() * 300).toFixed(1);
+    const y = (Math.random() * 150).toFixed(1);
+    const r = (0.6 + Math.random() * 0.8).toFixed(2);
+    const opacity = (0.3 + Math.random() * 0.6).toFixed(2);
+    stars += `<circle cx="${x}" cy="${y}" r="${r}" fill="#ffffff" opacity="${opacity}" />`;
+  }
+
+  return `<svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="travel-trail-gradient" gradientUnits="userSpaceOnUse" x1="${startX}" y1="0" x2="${endX}" y2="0">
+        <stop offset="0" stop-color="${fromPlanet.sceneColor}" />
+        <stop offset="1" stop-color="${toPlanet.sceneColor}" />
+      </linearGradient>
+    </defs>
+    ${stars}
+    <path d="${route}" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="2 6" />
+    <path class="travel-trail" d="${route}" fill="none" stroke="url(#travel-trail-gradient)" stroke-width="4" stroke-linecap="round" />
+    ${buildPlanetOrbSVG(fromPlanet, TRAVEL_FROM.x, TRAVEL_FROM.y, TRAVEL_PLANET_R)}
+    ${buildPlanetOrbSVG(toPlanet, TRAVEL_TO.x, TRAVEL_TO.y, TRAVEL_PLANET_R)}
+    ${ROCKET_SVG}
+  </svg>`;
+}
+
 const journeyState = {
   planetIndex: 0,
   fuel: 0,

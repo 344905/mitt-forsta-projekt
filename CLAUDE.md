@@ -200,12 +200,23 @@ grew out of before touching `PLANETS`.
 - When fuel reaches the current planet's `fuelNeeded`, `hangman-again-btn`'s label changes from
   "Nytt ord" to "🚀 Lyft till nästa planet!" (`readyToLaunch`, set in `guessLetter()`) and clicking it
   runs `launchToNextPlanet()` instead of `startNewHangmanRound()` directly.
-- `launchToNextPlanet()` is a timed, two-phase transition (not a new screen — same "stay on the
-  board" principle as the win-line/result inline pattern): it shows `#hangman-launch-overlay` over
-  the existing Hänga gubbe screen, reverts the panel to the default space look
-  (`renderSpaceBackdrop()`), waits, then calls `advanceToNextPlanet()` and starts a fresh round on
-  the new planet. `advanceToNextPlanet()` wraps back to planet 0 after the last planet so the journey
-  never dead-ends.
+- `launchToNextPlanet()` plays an animated trip (not a new screen — same "stay on the board"
+  principle as the win-line/result inline pattern) in `#hangman-launch-overlay`: the planet you're
+  leaving on the **right**, the next planet on the **left** (the user's explicit choice), a rocket
+  with flickering engine flames flying along an arc between them, and a trail drawn behind it in a
+  gradient from the origin's to the destination's `sceneColor`. The SVG comes from
+  `buildTravelSceneSVG()` in `journey.js` (planet looks/patterns in `PLANET_LOOKS`/`PLANET_PATTERNS`);
+  the motion is a `requestAnimationFrame` loop in `hangman.js` (`TRAVEL_DURATION_MS`, ~5 s, eased),
+  positioning the rocket with `getPointAtLength()` — tapping the overlay skips straight to landing.
+  Sounds: `playRocketLaunch()`/`playLanding()` in `sound.js`.
+  - `advanceToNextPlanet()` is called at **launch**, not landing, so a reload mid-trip lands on the
+    new planet instead of refunding the fuel. It wraps back to planet 0 after the last planet so the
+    journey never dead-ends (the trip text then says "Hela galaxen utforskad!").
+  - If the player pressed Avsluta during the trip, landing calls
+    `startNewHangmanRound({ switchScreen: false })` — the round is prepared but the player is **not**
+    yanked back from the exit-confirmation screen. Keep this guard if you touch the trip.
+  - The overlay uses `inset: -14px`, not `0`: the keyboard's glow outlines and the heading's
+    text-shadow poke a few px outside the screen's own box and showed through the edges otherwise.
 - The "on a planet" vs. "in space" visual distinction (as requested) is done by toggling
   `#app.on-planet` and setting the `--planet-bg` CSS custom property to the current planet's gradient
   (`renderPlanetBackdrop()`/`renderSpaceBackdrop()`) — **not** by touching the shared `#starfield`

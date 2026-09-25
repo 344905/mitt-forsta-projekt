@@ -53,6 +53,10 @@ const hangmanFuelMeterEl = document.getElementById("hangman-fuel-meter");
 const gameSelectJourneyStatusEl = document.getElementById("game-select-journey-status");
 const hangmanLaunchOverlayEl = document.getElementById("hangman-launch-overlay");
 const launchOverlayTextEl = document.getElementById("launch-overlay-text");
+const travelSceneEl = document.getElementById("travel-scene");
+const travelFromNameEl = document.getElementById("travel-from-name");
+const travelToNameEl = document.getElementById("travel-to-name");
+const hangmanScreenEl = document.getElementById("screen-hangman-game");
 const appEl = document.getElementById("app");
 
 // Sant mellan att en omgång avgjorts med full bränsletank och att man
@@ -161,33 +165,92 @@ function renderGameSelectJourneyStatus() {
     `🪐 ${planet.name} · 🚀 ${Math.min(journeyState.fuel, planet.fuelNeeded)}/${planet.fuelNeeded}`;
 }
 
-// Lyft mot nästa planet: en kort resa i rymden (bakgrunden återgår till
-// standard) innan man landar och en ny omgång börjar på den nya planeten.
+const TRAVEL_DURATION_MS = 5000;
+
+// Mjuk start och inbromsning, så raketen accelererar från planeten och
+// saktar in mot nästa istället för att glida i jämn fart.
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+// Lyft mot nästa planet: raketen åker från planeten man lämnar (höger)
+// till nästa (vänster) i ca 5 sekunder, med ett streck som ritas fram
+// bakom den. Går att trycka bort. Resan sparas direkt vid start (inte vid
+// landning), så en omladdning mitt i resan landar på den nya planeten
+// istället för att ge tillbaka bränslet.
 function launchToNextPlanet() {
   readyToLaunch = false;
+  const fromPlanet = getCurrentPlanet();
+  const roundedGalaxy = advanceToNextPlanet();
+  const toPlanet = getCurrentPlanet();
+  renderGameSelectJourneyStatus();
+
   renderSpaceBackdrop();
-  launchOverlayTextEl.textContent = "🚀 Startar mot nästa planet...";
-  hangmanLaunchOverlayEl.classList.remove("hidden");
   hangmanResultEl.classList.add("hidden");
+  launchOverlayTextEl.textContent = roundedGalaxy
+    ? `🌌 Hela galaxen utforskad! Ny resa till ${toPlanet.name}`
+    : `🚀 På väg till ${toPlanet.name}!`;
+  travelSceneEl.innerHTML = buildTravelSceneSVG(fromPlanet, toPlanet);
+  travelFromNameEl.textContent = fromPlanet.name;
+  travelFromNameEl.style.color = fromPlanet.sceneColor;
+  travelToNameEl.textContent = toPlanet.name;
+  travelToNameEl.style.color = toPlanet.sceneColor;
+  hangmanLaunchOverlayEl.classList.remove("hidden");
+  playRocketLaunch();
 
-  setTimeout(() => {
-    const roundedGalaxy = advanceToNextPlanet();
-    renderGameSelectJourneyStatus();
+  const trail = travelSceneEl.querySelector(".travel-trail");
+  const rocket = travelSceneEl.querySelector(".travel-rocket");
+  const length = trail.getTotalLength();
+  // Uppdateras varje bildruta från JS (ingen CSS-transition), så en inline
+  // style är rätt här — jfr vinstlinjen i script.js, som istället animeras
+  // med CSS och därför måste gå via en custom property.
+  trail.style.strokeDasharray = length;
 
-    if (!roundedGalaxy) {
-      hangmanLaunchOverlayEl.classList.add("hidden");
-      startNewHangmanRound();
-      return;
+  function placeRocket(progress) {
+    const distance = easeInOut(progress) * length;
+    const point = trail.getPointAtLength(distance);
+    // Riktningen räknas från en punkt strax bakom till strax framför, så
+    // vinkeln blir rätt även precis vid banans start och slut.
+    const behind = trail.getPointAtLength(Math.max(distance - 1, 0));
+    const ahead = trail.getPointAtLength(Math.min(distance + 1, length));
+    const angle = (Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180) / Math.PI;
+    rocket.setAttribute("transform", `translate(${point.x} ${point.y}) rotate(${angle})`);
+    trail.style.strokeDashoffset = length - distance;
+  }
+
+  let finished = false;
+  let frameId = null;
+  const startTime = performance.now();
+
+  function finishTravel() {
+    if (finished) return;
+    finished = true;
+    cancelAnimationFrame(frameId);
+    hangmanLaunchOverlayEl.removeEventListener("click", finishTravel);
+    hangmanLaunchOverlayEl.classList.add("hidden");
+    travelSceneEl.innerHTML = "";
+    // Har man hunnit trycka på Avsluta under resan ska landningen inte
+    // rycka tillbaka en till spelet — nästa omgång förbereds ändå, så den
+    // väntar färdig om man trycker "Avbryt".
+    const stillOnHangman = hangmanScreenEl.classList.contains("active");
+    if (stillOnHangman) playLanding();
+    startNewHangmanRound({ switchScreen: stillOnHangman });
+  }
+
+  function step(now) {
+    if (finished) return;
+    const progress = Math.min((now - startTime) / TRAVEL_DURATION_MS, 1);
+    placeRocket(progress);
+    if (progress < 1) {
+      frameId = requestAnimationFrame(step);
+    } else {
+      finishTravel();
     }
+  }
 
-    // Extra stund för att fira att hela planetrundan är klar, innan man
-    // landar på planet 1 igen med en ny omgång.
-    launchOverlayTextEl.textContent = "🌌 Hela galaxen utforskad — ny resa!";
-    setTimeout(() => {
-      hangmanLaunchOverlayEl.classList.add("hidden");
-      startNewHangmanRound();
-    }, 1400);
-  }, 1400);
+  placeRocket(0);
+  hangmanLaunchOverlayEl.addEventListener("click", finishTravel);
+  frameId = requestAnimationFrame(step);
 }
 
 function renderHangmanKeyboard() {
@@ -206,7 +269,10 @@ function renderHangmanKeyboard() {
 }
 
 // --- Ny omgång: slumpar ett nytt ord och nollställer allt ---
-function startNewHangmanRound() {
+// `switchScreen: false` förbereder omgången utan att byta till Hänga
+// gubbe-skärmen — används när en planetresa landar medan man står på
+// en annan skärm (t.ex. Avsluta-bekräftelsen).
+function startNewHangmanRound({ switchScreen = true } = {}) {
   hangmanState.word = pickRandomWord();
   lastWord = hangmanState.word;
   hangmanState.guessedLetters = [];
@@ -226,7 +292,7 @@ function startNewHangmanRound() {
   renderPlanetBackdrop();
   hangmanAgainBtnEl.textContent = "Nytt ord";
   hangmanResultEl.classList.add("hidden");
-  showScreen("screen-hangman-game");
+  if (switchScreen) showScreen("screen-hangman-game");
 }
 
 function guessLetter(letter) {

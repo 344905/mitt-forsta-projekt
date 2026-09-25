@@ -106,12 +106,20 @@ test.describe("Rymdresan: bränsle och planetbyte", () => {
     expect(fuelBefore).toBe(8);
 
     await page.locator("#hangman-again-btn").click();
-    // Under själva lyftet visas overlayn och planet-bakgrunden nollställs.
+    // Under själva lyftet visas resegrafiken och planet-bakgrunden nollställs.
     await expect(page.locator("#hangman-launch-overlay")).not.toHaveClass(/hidden/);
     await expect(page.locator("#app")).not.toHaveClass(/on-planet/);
+    await expect(page.locator("#launch-overlay-text")).toHaveText("🚀 På väg till Dinosaurieplaneten!");
+    await expect(page.locator("#travel-scene .travel-rocket")).toBeAttached();
+    await expect(page.locator("#travel-scene .travel-trail")).toBeAttached();
+    await expect(page.locator("#travel-scene .travel-planet")).toHaveCount(2);
+    // Avresan till höger, destinationen till vänster.
+    await expect(page.locator("#travel-from-name")).toHaveText("Djurplaneten");
+    await expect(page.locator("#travel-to-name")).toHaveText("Dinosaurieplaneten");
 
-    // Overlayn försvinner igen och en ny omgång startar på nästa planet.
-    await expect(page.locator("#hangman-launch-overlay")).toHaveClass(/hidden/, { timeout: 3000 });
+    // Utan att trycka: resan (~5 s) tar slut av sig själv och en ny
+    // omgång startar på nästa planet.
+    await expect(page.locator("#hangman-launch-overlay")).toHaveClass(/hidden/, { timeout: 8000 });
     const { planetIndex, planetName, fuel, word, planetWords } = await page.evaluate(() => ({
       planetIndex: journeyState.planetIndex,
       planetName: getCurrentPlanet().name,
@@ -124,6 +132,49 @@ test.describe("Rymdresan: bränsle och planetbyte", () => {
     expect(fuel).toBe(0);
     expect(planetWords).toContain(word);
     await expect(page.locator("#app")).toHaveClass(/on-planet/);
+    await expect(page.locator("#hangman-planet-name")).toHaveText("🪐 Dinosaurieplaneten");
+  });
+
+  test("ett tryck på resegrafiken hoppar direkt till nästa planet", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#screen-intro").click();
+    await page.locator("#select-hangman-btn").click();
+    await page.evaluate(() => { journeyState.fuel = 6; });
+    await winRound(page);
+    await page.locator("#hangman-again-btn").click();
+    await expect(page.locator("#hangman-launch-overlay")).not.toHaveClass(/hidden/);
+
+    await page.locator("#hangman-launch-overlay").click();
+    // Långt kortare än resans 5 sekunder — ska vara borta direkt.
+    await expect(page.locator("#hangman-launch-overlay")).toHaveClass(/hidden/, { timeout: 1000 });
+    const { planetName, status } = await page.evaluate(() => ({
+      planetName: getCurrentPlanet().name,
+      status: hangmanState.status,
+    }));
+    expect(planetName).toBe("Dinosaurieplaneten");
+    expect(status).toBe("playing");
+  });
+
+  test("trycker man Avsluta under resan drar landningen inte tillbaka en till spelet", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#screen-intro").click();
+    await page.locator("#select-hangman-btn").click();
+    await page.evaluate(() => { journeyState.fuel = 6; });
+    await winRound(page);
+    await page.locator("#hangman-again-btn").click();
+    await page.locator("#exit-btn").click();
+    await expect(page.locator("#screen-exit-confirm")).toHaveClass(/active/);
+
+    // Vänta ut hela resan — man ska stå kvar på Avsluta-frågan.
+    await page.waitForTimeout(5600);
+    await expect(page.locator("#screen-exit-confirm")).toHaveClass(/active/);
+
+    // "Avbryt" tar tillbaka till en färdig ny omgång på nästa planet.
+    await page.locator("#exit-cancel-btn").click();
+    await expect(page.locator("#screen-hangman-game")).toHaveClass(/active/);
+    await expect(page.locator("#hangman-launch-overlay")).toHaveClass(/hidden/);
+    const status = await page.evaluate(() => hangmanState.status);
+    expect(status).toBe("playing");
     await expect(page.locator("#hangman-planet-name")).toHaveText("🪐 Dinosaurieplaneten");
   });
 

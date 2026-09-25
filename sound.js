@@ -45,7 +45,7 @@ function getAudioContext() {
 
 // Spelar en enkel ton. `sweepTo` (valfri) låter frekvensen glida till
 // ett annat värde under tonens längd, för stigande/fallande effekter.
-function playTone({ freq, duration, type = "square", sweepTo = null, startAt = 0 }) {
+function playTone({ freq, duration, type = "square", sweepTo = null, startAt = 0, volume = SOUND_GAIN }) {
   if (!soundEnabled) return;
   // Ljud får ALDRIG kunna krascha spellogiken (t.ex. om AudioContext inte
   // stöds, eller redan är "closed") — guessLetter() i hangman.js anropar
@@ -63,7 +63,7 @@ function playTone({ freq, duration, type = "square", sweepTo = null, startAt = 0
       osc.frequency.linearRampToValueAtTime(sweepTo, ctx.currentTime + startAt + duration);
     }
 
-    gain.gain.setValueAtTime(SOUND_GAIN, ctx.currentTime + startAt);
+    gain.gain.setValueAtTime(volume, ctx.currentTime + startAt);
     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + startAt + duration);
 
     osc.connect(gain);
@@ -132,6 +132,22 @@ function playSeriesWin(player) {
   notes.forEach((freq, i) => {
     playTone({ freq, duration: 0.12, type: "square", startAt: i * 0.1 });
   });
+}
+
+// --- Rymdresan (journey.js / launchToNextPlanet i hangman.js) ---
+
+// Raketstart: två lager som stiger tillsammans — ett mörkt mullrande
+// sågtandslager och ett ljusare "vrål" ovanpå. Lägre volym per lager än
+// standard, annars blir summan av dem dubbelt så stark som övriga ljud.
+function playRocketLaunch() {
+  playTone({ freq: 60, sweepTo: 200, duration: 1.4, type: "sawtooth", volume: 0.1 });
+  playTone({ freq: 110, sweepTo: 440, duration: 1.2, type: "square", startAt: 0.05, volume: 0.08 });
+}
+
+// Landning: ett mjukt fallande "pling-plong" (G5 → C5).
+function playLanding() {
+  playTone({ freq: 784, duration: 0.12, type: "triangle" });
+  playTone({ freq: 523.3, duration: 0.2, type: "triangle", startAt: 0.12 });
 }
 
 function toggleSound() {
