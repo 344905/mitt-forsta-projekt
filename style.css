@@ -497,6 +497,32 @@ h2 {
 
 /* ---------- Hänga gubbe ---------- */
 
+/* Bildkortet ligger BREDVID teckningen (inte ovanför), så skärmen inte
+   blir högre — viktigt på korta skärmar där Hänga gubbe redan har flest
+   staplade delar. */
+.hangman-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Bildledtråden: ordets emoji (eller planetens symbol, se getWordPicture()
+   i journey.js). Går inte att trycka på och ändras aldrig under omgången,
+   så ingen egen interaktionsstil behövs. Samma chunky ram som .primary-btn. */
+.hangman-clue {
+  flex: none;
+  width: clamp(44px, min(16vw, 9vh), 72px);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(26px, min(9.6vw, 5.4vh), 43px);
+  line-height: 1;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 3px var(--accent), 4px 4px 0 3px #000;
+}
+
 /* Samma teknik som .board-wrap: storleken sätts på wrappern, inte på
    SVG:n själv, annars uppstår samma cirkelberoende-krasch som brädet
    hade tidigare. */
@@ -613,6 +639,29 @@ h2 {
 .hangman-letter.revealed {
   opacity: 1;
   text-shadow: 0 0 6px var(--accent);
+}
+
+/* Facit vid förlust: bokstäver man inte hittade, ifyllda på plats. Skiljer
+   sig från .revealed genom BÅDE färg och understrykning, aldrig bara
+   färg — och aldrig rött, det betyder "fel" på tangenterna (.hangman-key.wrong).
+   Tonas in en i taget via --i (satt i renderHangmanWord()). */
+.hangman-letter.missed {
+  color: var(--text);
+  opacity: 0.7;
+  text-shadow: none;
+  /* text-decoration istället för border-bottom: en ram hade gjort raden
+     2px högre exakt när resultatet visas, vilket kan trycka ner allt
+     under (och räknas som ny scroll på en kort skärm). En understrykning
+     ritas utanför box-modellen och tar ingen plats. */
+  text-decoration: underline dashed var(--text);
+  text-underline-offset: 3px;
+  animation: hangman-letter-fade-in 0.3s ease both;
+  animation-delay: calc(var(--i) * 120ms);
+}
+
+@keyframes hangman-letter-fade-in {
+  from { opacity: 0; }
+  to { opacity: 0.7; }
 }
 
 /* Bekräftar visuellt VILKEN bokstav som precis dök upp, inte bara att

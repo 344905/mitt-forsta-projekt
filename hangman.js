@@ -43,6 +43,7 @@ let lastGuessedLetter = null;
 // --- DOM-referenser ---
 const hangmanTurnIndicatorEl = document.getElementById("hangman-turn-indicator");
 const hangmanWordEl = document.getElementById("hangman-word");
+const hangmanClueEl = document.getElementById("hangman-clue");
 const hangmanKeyboardEl = document.getElementById("hangman-keyboard");
 const hangmanResultEl = document.getElementById("hangman-result");
 const hangmanResultTextEl = document.getElementById("hangman-result-text");
@@ -84,17 +85,35 @@ function renderHangmanTurnIndicator() {
 
 function renderHangmanWord() {
   hangmanWordEl.innerHTML = "";
+  let missedIndex = 0;
   hangmanState.word.split("").forEach((letter) => {
     const span = document.createElement("span");
     span.className = "hangman-letter";
     const revealed = hangmanState.guessedLetters.includes(letter);
-    span.textContent = revealed ? letter : "_";
     if (revealed) {
+      span.textContent = letter;
       span.classList.add("revealed");
       if (letter === lastGuessedLetter) span.classList.add("pop");
+    } else if (hangmanState.status === "lost") {
+      // Facit vid förlust: bokstäver man inte hittade fylls i på plats,
+      // en i taget (--i driver animation-delay i CSS), i en egen stil
+      // som aldrig är röd — röd betyder "fel" på tangenterna, inte facit.
+      span.textContent = letter;
+      span.classList.add("missed");
+      span.style.setProperty("--i", missedIndex);
+      missedIndex++;
+    } else {
+      span.textContent = "_";
     }
     hangmanWordEl.appendChild(span);
   });
+}
+
+// Bildkortet bredvid galgteckningen — ordets egen bild, eller planetens
+// symbol om ordet saknar en. Sätts en gång per omgång och rör sig aldrig
+// under spelets gång (se startNewHangmanRound()).
+function renderHangmanClue() {
+  hangmanClueEl.textContent = getWordPicture(hangmanState.word, getCurrentPlanet());
 }
 
 function renderHangmanDrawing() {
@@ -285,6 +304,7 @@ function startNewHangmanRound({ switchScreen = true } = {}) {
   buildHangmanKeyboard();
   renderHangmanTurnIndicator();
   renderHangmanWord();
+  renderHangmanClue();
   renderHangmanDrawing();
   renderHangmanKeyboard();
   renderPlanetName();
@@ -308,21 +328,28 @@ function guessLetter(letter) {
     shakeDrawing(); // visuell motsvarighet till playWrongGuess()/playLose()-ljudet
   }
 
-  renderHangmanWord();
-  renderHangmanDrawing();
-
   const wordGuessed = hangmanState.word
     .split("")
     .every((wordLetter) => hangmanState.guessedLetters.includes(wordLetter));
 
   if (wordGuessed) {
     hangmanState.status = "won";
-    hangmanResultTextEl.textContent = "Ni gissade ordet!";
-    playWin();
-    sparkBurst(hangmanWordEl, "var(--accent)");
   } else if (hangmanState.wrongGuesses >= MAX_WRONG_GUESSES) {
     hangmanState.status = "lost";
-    hangmanResultTextEl.textContent = `Gubben hann hänga. Ordet var: ${hangmanState.word}`;
+  }
+
+  // Status sätts innan renderHangmanWord() körs, eftersom den läser
+  // hangmanState.status för att fylla i facit på plats vid förlust
+  // (istället för att bara stå i resultattexten).
+  renderHangmanWord();
+  renderHangmanDrawing();
+
+  if (hangmanState.status === "won") {
+    hangmanResultTextEl.textContent = `Ni klarade det! 🚀+${FUEL_PER_WIN}`;
+    playWin();
+    sparkBurst(hangmanWordEl, "var(--accent)");
+  } else if (hangmanState.status === "lost") {
+    hangmanResultTextEl.textContent = `Nästan! Så stavas det. 🚀+${FUEL_PER_LOSS}`;
     playLose();
   } else {
     // Vinst/förlust-ljudet räcker för den sista gissningen — annars

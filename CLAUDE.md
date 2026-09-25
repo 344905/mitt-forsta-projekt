@@ -169,13 +169,37 @@ clipping, both fixed once already — don't reintroduce them:
   guess reveals one more `.hm-part` element in the SVG, in `HANGMAN_PARTS` order. Only the ground line
   is permanently visible (`.hm-gallows`); everything else starts hidden.
 - Same lesson as Luffarschack's win line: on win or loss, the word/drawing/keyboard stay visible and
-  the result + "Nytt ord"/"Byt spel" buttons appear inline (`#hangman-result`) rather than switching
+  the result + "Nytt ord"/"Tillbaka" buttons appear inline (`#hangman-result`) rather than switching
   screens; the keyboard just gets `disabled`.
 - A wrong guess shakes the drawing (`shakeDrawing()`, a retriggerable CSS animation on
   `.hangman-drawing-wrap`) as the visual counterpart to the `playWrongGuess()`/`playLose()` sound.
 - Winning shows a `sparkBurst()` on the revealed word.
 - `pickRandomWord()` excludes the just-played word (`lastWord`) from the next round's random pick,
   so the same word can't repeat back-to-back.
+- **Picture clue**: `#hangman-clue` (inside a `.hangman-stage` wrapper alongside
+  `.hangman-drawing-wrap`) shows the current word's emoji, via `getWordPicture(word, planet)` in
+  `journey.js` — this is the main support for a child who can't read the word yet. `WORD_PICTURES`
+  only maps words with an unambiguous concrete emoji; anything else (and any word not in the map)
+  falls back to `planet.icon`. Both maps are hand-curated to avoid two failure modes that look fine
+  in isolation but are actively misleading in play: **(a)** a planet's fallback `icon` must never
+  equal a real word's own dedicated picture on that planet (a kid seeing the fallback would think of
+  the wrong word) — this is why the planet icons are deliberately generic/thematic (⚙️ for
+  Robotplaneten, not 🤖, since `robot` is itself a word there) rather than a literal match; **(b)**
+  no two words on the *same* planet share the same explicit picture. When two real words would
+  otherwise collide (e.g. `boll`/`fotboll`, `hav`/`våg`), keep the picture on the more concrete one
+  and let the other fall back to the planet icon — per the design doc, a shared/guessed picture is
+  worse than the neutral fallback. If you add or edit `WORD_PICTURES`/planet icons, re-check both
+  rules (there's no automated test for it; it was caught by manual review, not Playwright).
+- **Missed-letter reveal**: on loss, `renderHangmanWord()` fills in the unguessed letters in place
+  (class `.missed`) instead of only naming the word in the result text — letters you *did* find keep
+  the normal `.revealed` style, so you can see what you got right. `.missed` uses `text-decoration:
+  underline dashed`, not `border-bottom` — a border adds to the letter's box height and visibly
+  shifts the line the instant the result appears; text-decoration doesn't affect layout. `.missed` is
+  never red (red means "wrong" on the keyboard elsewhere) and is distinguished from `.revealed` by
+  both color *and* the underline, not color alone. Letters fade in staggered via a `--i` custom
+  property (`animation-delay: calc(var(--i) * 120ms)`), indexed only among the missed letters, set in
+  `renderHangmanWord()` — compute `hangmanState.status` before calling it, not after, so it renders
+  the outcome in one pass instead of two.
 
 ### The space journey (`journey.js`)
 

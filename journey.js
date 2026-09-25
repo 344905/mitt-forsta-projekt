@@ -18,7 +18,7 @@ const FUEL_PER_LOSS = 1;
 // tränar ord kopplade till varje planet.
 const PLANETS = [
   {
-    id: "djur", name: "Djurplaneten", fuelNeeded: 8,
+    id: "djur", name: "Djurplaneten", fuelNeeded: 8, icon: "🐾",
     bg: "linear-gradient(180deg, #142b12, #0d0d1a)",
     sceneColor: "#7CFC00", scene: ["fence", "barn", "tree", "tree"],
     words: [
@@ -28,7 +28,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "dinosaurie", name: "Dinosaurieplaneten", fuelNeeded: 8,
+    id: "dinosaurie", name: "Dinosaurieplaneten", fuelNeeded: 8, icon: "🦖",
     bg: "linear-gradient(180deg, #2b1a12, #0d0d1a)",
     sceneColor: "#ff7043", scene: ["mountain", "volcano", "mountain"],
     words: [
@@ -38,7 +38,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "mat", name: "Matplaneten", fuelNeeded: 12,
+    id: "mat", name: "Matplaneten", fuelNeeded: 12, icon: "🍽️",
     bg: "linear-gradient(180deg, #2b2312, #0d0d1a)",
     sceneColor: "#ffca28", scene: ["tree", "ball", "tree", "ball"],
     words: [
@@ -49,7 +49,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "trafik", name: "Trafikplaneten", fuelNeeded: 12,
+    id: "trafik", name: "Trafikplaneten", fuelNeeded: 12, icon: "🚦",
     bg: "linear-gradient(180deg, #12222b, #0d0d1a)",
     sceneColor: "#4fc3f7", scene: ["car", "antenna", "car"],
     words: [
@@ -59,7 +59,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "skola", name: "Skolplaneten", fuelNeeded: 12,
+    id: "skola", name: "Skolplaneten", fuelNeeded: 12, icon: "🔤",
     bg: "linear-gradient(180deg, #1a1230, #0d0d1a)",
     sceneColor: "#ba68c8", scene: ["board", "book", "book"],
     words: [
@@ -69,7 +69,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "sport", name: "Sportplaneten", fuelNeeded: 12,
+    id: "sport", name: "Sportplaneten", fuelNeeded: 12, icon: "🏟️",
     bg: "linear-gradient(180deg, #122b1e, #0d0d1a)",
     sceneColor: "#66bb6a", scene: ["goalpost", "ball", "goalpost"],
     words: [
@@ -79,7 +79,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "robot", name: "Robotplaneten", fuelNeeded: 12,
+    id: "robot", name: "Robotplaneten", fuelNeeded: 12, icon: "⚙️",
     bg: "linear-gradient(180deg, #1a1a2b, #0d0d1a)",
     sceneColor: "#90a4ae", scene: ["antenna", "gear", "antenna"],
     words: [
@@ -89,7 +89,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "hav", name: "Havsplaneten", fuelNeeded: 12,
+    id: "hav", name: "Havsplaneten", fuelNeeded: 12, icon: "🏝️",
     bg: "linear-gradient(180deg, #0f2530, #0d0d1a)",
     sceneColor: "#26c6da", scene: ["wave", "shell", "wave", "shell"],
     words: [
@@ -99,7 +99,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "vader", name: "Väderplaneten", fuelNeeded: 12,
+    id: "vader", name: "Väderplaneten", fuelNeeded: 12, icon: "🌦️",
     bg: "linear-gradient(180deg, #1c1c2e, #0d0d1a)",
     sceneColor: "#90caf9", scene: ["cloud", "raindrop", "cloud", "raindrop"],
     words: [
@@ -109,7 +109,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "kropp", name: "Kroppsplaneten", fuelNeeded: 12,
+    id: "kropp", name: "Kroppsplaneten", fuelNeeded: 12, icon: "🧍",
     bg: "linear-gradient(180deg, #2b1224, #0d0d1a)",
     sceneColor: "#f06292", scene: ["person", "person", "person"],
     words: [
@@ -118,7 +118,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "natur", name: "Naturplaneten", fuelNeeded: 12,
+    id: "natur", name: "Naturplaneten", fuelNeeded: 12, icon: "🌱",
     bg: "linear-gradient(180deg, #16281a, #0d0d1a)",
     sceneColor: "#81c784", scene: ["mountain", "tree", "tree", "tree"],
     words: [
@@ -128,7 +128,7 @@ const PLANETS = [
     ],
   },
   {
-    id: "musik", name: "Musikplaneten", fuelNeeded: 12,
+    id: "musik", name: "Musikplaneten", fuelNeeded: 12, icon: "🎵",
     bg: "linear-gradient(180deg, #241230, #0d0d1a)",
     sceneColor: "#ce93d8", scene: ["note", "note", "note"],
     words: [
@@ -138,6 +138,92 @@ const PLANETS = [
     ],
   },
 ];
+
+// Bildledtråden i Hänga gubbe (se renderHangmanClue() i hangman.js): en
+// emoji för ord som har en tydlig, konkret bild. Ord som saknar en (t.ex.
+// "stor", "läxa") utelämnas helt härifrån med flit — en gissad eller
+// missvisande bild är sämre än att falla tillbaka på planetens egen symbol
+// (planet.icon ovan). "fisk", "sten" och "hals" finns på två planeter men
+// får bara en gemensam bild här, eftersom kartan är nyckel-på-ord, inte
+// nyckel-på-planet.
+// Bara emoji ur Unicode Emoji 13 (2020) eller äldre — nyare tecken (t.ex.
+// 🪸, 🪼) kan visas som tomma rutor på äldre Android-telefoner.
+const WORD_PICTURES = {
+  // Djurplaneten
+  hund: "🐕", katt: "🐈", häst: "🐎", ko: "🐄", gris: "🐷", get: "🐐",
+  höna: "🐔", tupp: "🐓", anka: "🦆", fisk: "🐟", fågel: "🐦", groda: "🐸",
+  orm: "🐍", mus: "🐭", räv: "🦊", varg: "🐺", björn: "🐻", zebra: "🦓",
+  giraff: "🦒", elefant: "🐘", känguru: "🦘", panda: "🐼", tiger: "🐅",
+  lejon: "🦁", apa: "🐒",
+
+  // Dinosaurieplaneten
+  ägg: "🥚", ödla: "🦎", tänder: "🦷", museum: "🏛️", vulkan: "🌋",
+  meteor: "☄️", skelett: "💀", sten: "🪨",
+
+  // Matplaneten
+  äpple: "🍎", banan: "🍌", apelsin: "🍊", päron: "🍐", jordgubbe: "🍓",
+  glass: "🍦", kaka: "🍪", bröd: "🍞", smör: "🧈", ost: "🧀", mjölk: "🥛",
+  saft: "🧃", soppa: "🍲", pizza: "🍕", pasta: "🍝", ris: "🍚",
+  potatis: "🥔", morot: "🥕", gurka: "🥒", tomat: "🍅", korv: "🌭",
+  sallad: "🥗",
+
+  // Trafikplaneten
+  bil: "🚗", buss: "🚌", tåg: "🚆", cykel: "🚲", moped: "🛵",
+  lastbil: "🚚", taxi: "🚕", flygplan: "✈️", båt: "⛵", skepp: "🚢",
+  bro: "🌉", stopp: "🛑", skylt: "🪧", hjälm: "⛑️", parkering: "🅿️",
+
+  // Skolplaneten
+  skola: "🏫", penna: "✏️", linjal: "📏", bok: "📖", häfte: "📓",
+  ryggsäck: "🎒", stol: "🪑",
+
+  // Sportplaneten — "boll" och "fotboll" delar annars samma bild; boll
+  // faller tillbaka på planetens symbol istället för en gissad egen bild.
+  mål: "🥅", fotboll: "⚽", hockey: "🏒", simning: "🏊",
+  löpning: "🏃", cykling: "🚴", tennis: "🎾", skidor: "⛷️",
+  skridskor: "⛸️", medalj: "🏅", seger: "🏆",
+
+  // Robotplaneten
+  robot: "🤖", skruv: "🔩", batteri: "🔋", kabel: "🔌", knapp: "🔘",
+  skärm: "🖥️", lampa: "💡", raket: "🚀", rymdskepp: "🛸",
+  astronaut: "🧑‍🚀", planet: "🪐", måne: "🌙", stjärna: "⭐",
+  // "kabel" och "sladd" delar annars samma bild (🔌); sladd faller
+  // tillbaka på planetens symbol.
+  satellit: "🛰️", dator: "💻",
+
+  // Havsplaneten — "hav" och "våg" delar annars samma bild; våg faller
+  // tillbaka på planetens symbol.
+  hav: "🌊", krabba: "🦀", bläckfisk: "🐙", val: "🐋",
+  delfin: "🐬", haj: "🦈", säl: "🦭", mussla: "🐚", strand: "🏖️",
+  simma: "🏊", snorkel: "🤿",
+
+  // Väderplaneten
+  sol: "☀️", regn: "🌧️", snö: "❄️", moln: "☁️", vind: "💨",
+  storm: "🌪️", åska: "⛈️", blixt: "⚡", is: "🧊", dimma: "🌫️",
+  kyla: "🥶", värme: "🥵", paraply: "☔", stövlar: "👢",
+  regnbåge: "🌈",
+
+  // Kroppsplaneten
+  öga: "👁️", öra: "👂", näsa: "👃", mun: "👄", tand: "🦷", arm: "💪",
+  hand: "✋", finger: "☝️", ben: "🦵", fot: "🦶",
+
+  // Naturplaneten — "eld" och "lägereld" delar annars samma bild;
+  // lägereld faller tillbaka på planetens symbol.
+  träd: "🌳", skog: "🌲", blomma: "🌼", gräs: "🌿", löv: "🍃",
+  berg: "⛰️", svamp: "🍄", bär: "🍓", eld: "🔥",
+
+  // Musikplaneten — "sång" och "mikrofon" delar annars samma bild; sång
+  // faller tillbaka på planetens symbol (🎵 passar den bra ändå).
+  gitarr: "🎸", trumma: "🥁", piano: "🎹", fiol: "🎻",
+  mikrofon: "🎤", högtalare: "🔊", dans: "💃", trumpet: "🎺",
+};
+
+// Bilden till bildkortet för ett givet ord: ordets egen bild om den finns,
+// annars planetens symbol som en neutral "ingen bild"-signal (aldrig en
+// gissad eller missvisande bild).
+function getWordPicture(word, planet) {
+  const key = word.toLowerCase();
+  return Object.hasOwn(WORD_PICTURES, key) ? WORD_PICTURES[key] : planet.icon;
+}
 
 // Enkla siluett-former som byggs ihop till en liten temascen bakom själva
 // hänga gubbe-teckningen (se buildPlanetSceneSVG/renderPlanetScene i
