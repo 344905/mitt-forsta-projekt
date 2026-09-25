@@ -221,7 +221,12 @@ grew out of before touching `PLANETS`.
   `#app.on-planet` and setting the `--planet-bg` CSS custom property to the current planet's gradient
   (`renderPlanetBackdrop()`/`renderSpaceBackdrop()`) — **not** by touching the shared `#starfield`
   canvas, which stays exactly as-is everywhere. Same CSS-custom-property lesson as the win line: JS
-  sets the variable, the stylesheet rule (`#app.on-planet`) reads it.
+  sets the variable, the stylesheet rule reads it. That rule is
+  `#app.on-planet[data-screen="screen-hangman-game"]` — `showScreen()` (script.js) writes the active
+  screen id to `#app`'s `data-screen`, so the tint only shows while Hänga gubbe is actually on screen.
+  (`.on-planet` alone leaked the tint onto the exit-confirm, goodbye and game-select screens when
+  leaving via Avsluta.) `.on-planet` itself means "landed, not travelling" and is still managed only
+  by hangman.js.
 - A small always-visible status line (`#game-select-journey-status`) mirrors the current planet/fuel
   on the game-select screen, so the journey is visible even before opening Hänga gubbe.
 - Each planet also gets a small silhouette **scene** (`SCENE_SHAPES`/`buildPlanetSceneSVG()` in

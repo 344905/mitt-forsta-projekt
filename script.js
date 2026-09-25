@@ -183,6 +183,10 @@ function showScreen(id) {
   document.querySelectorAll(".screen").forEach((el) => {
     el.classList.toggle("active", el.id === id);
   });
+  // Läses av CSS:en — planetens färgton (#app.on-planet) ska bara synas
+  // när Hänga gubbe-skärmen faktiskt visas, inte ligga kvar på t.ex.
+  // Avsluta-frågan eller spelvalet efteråt.
+  document.getElementById("app").dataset.screen = id;
   // Luffarschackets blinkande pekare hör bara hemma på spelskärmen —
   // annars fortsätter timern gå i bakgrunden resten av sidans livstid.
   if (id !== "screen-game") stopCursorBlink();

@@ -695,7 +695,10 @@ h2 {
    gubbe (journey.js). --planet-bg sätts av JS (renderPlanetBackdrop) och
    nollställs (renderSpaceBackdrop) under själva resan mellan planeter,
    så panelen märkbart skiljer sig mellan "på en planet" och "i rymden". */
-#app.on-planet {
+/* Både landad (.on-planet, styrs av hangman.js) OCH på Hänga gubbe-
+   skärmen (data-screen, sätts av showScreen i script.js) — annars låg
+   tonen kvar på andra skärmar om man lämnade spelet via Avsluta. */
+#app.on-planet[data-screen="screen-hangman-game"] {
   background: var(--planet-bg, var(--panel-bg));
   transition: background 0.6s ease;
 }

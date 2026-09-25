@@ -178,6 +178,35 @@ test.describe("Rymdresan: bränsle och planetbyte", () => {
     await expect(page.locator("#hangman-planet-name")).toHaveText("🪐 Dinosaurieplaneten");
   });
 
+  test("planetens färgton syns bara på Hänga gubbe-skärmen, inte kvar efter Avsluta", async ({ page }) => {
+    const appBackgroundImage = () =>
+      page.evaluate(() => getComputedStyle(document.getElementById("app")).backgroundImage);
+
+    await page.goto("/");
+    await page.locator("#screen-intro").click();
+    await page.locator("#select-hangman-btn").click();
+    // Planeternas ton är en gradient; standardpanelen är en enfärgad bakgrund.
+    expect(await appBackgroundImage()).toContain("gradient");
+
+    await page.locator("#exit-btn").click();
+    await expect(page.locator("#screen-exit-confirm")).toHaveClass(/active/);
+    expect(await appBackgroundImage()).toBe("none");
+
+    // Avbryt → tillbaka på planeten, tonen ska komma tillbaka.
+    await page.locator("#exit-cancel-btn").click();
+    await expect(page.locator("#screen-hangman-game")).toHaveClass(/active/);
+    expect(await appBackgroundImage()).toContain("gradient");
+
+    // Avsluta på riktigt → avskedsskärmen och spelvalet ska vara utan ton.
+    await page.locator("#exit-btn").click();
+    await page.locator("#exit-confirm-btn").click();
+    await expect(page.locator("#screen-goodbye")).toHaveClass(/active/);
+    expect(await appBackgroundImage()).toBe("none");
+    await page.locator("#goodbye-back-btn").click();
+    await expect(page.locator("#screen-game-select")).toHaveClass(/active/);
+    expect(await appBackgroundImage()).toBe("none");
+  });
+
   test("resan sparas i localStorage och finns kvar efter en omladdning", async ({ page }) => {
     await page.goto("/");
     await page.locator("#screen-intro").click();
