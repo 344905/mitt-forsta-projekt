@@ -139,10 +139,10 @@ test.describe("3+4. Bildkortet visas och följer det aktuella ordet", () => {
 
   test("fallback till planetens symbol för ord utan egen bild i WORD_PICTURES", async ({ page }) => {
     await goToHangman(page);
-    // "läxa" (Skolplaneten) saknar med flit en egen bild, se journey.js.
+    // "rast" (Skolplaneten) saknar med flit en egen bild, se journey.js.
     const { picture, icon } = await page.evaluate(() => {
       const planet = PLANETS.find((p) => p.id === "skola");
-      return { picture: getWordPicture("läxa", planet), icon: planet.icon };
+      return { picture: getWordPicture("rast", planet), icon: planet.icon };
     });
     expect(picture).toBe(icon);
   });

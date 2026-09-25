@@ -193,6 +193,18 @@ clipping, both fixed once already — don't reintroduce them:
   and let the other fall back to the planet icon — per the design doc, a shared/guessed picture is
   worse than the neutral fallback. If you add or edit `WORD_PICTURES`/planet icons, re-check both
   rules (there's no automated test for it; it was caught by manual review, not Playwright).
+  - **(c)** Keep the fallback *rate* low, per planet — a real user (a child) reported that
+    Dinosaurieplaneten's clues were "impossible to make out, same picture for several words": with
+    only 8/19 words mapped, 11 different words all showed the same 🦖. Seeing one fallback icon is a
+    reasonable "no picture" signal; seeing it for most of the words you play in a row just reads as
+    broken. There's no fixed target, but double-digit percentages (see the per-planet ratios you can
+    recompute with the one-liner below) should prompt you to look for more real pictures before
+    accepting the rest as "genuinely abstract, no good emoji exists" (comparative adjectives like
+    `stor`/`liten`, or a real object with no pre-2020 emoji, e.g. `hjul`/`tamburin`, are legitimate
+    reasons to leave a word on the fallback; "I didn't look for one" isn't). A one-off check:
+    `node -e 'const c=require("fs").readFileSync("journey.js","utf8")+"\nthis.P=PLANETS;this.W=WORD_PICTURES;"; const ctx={}; require("vm").createContext(ctx); require("vm").runInContext(c,ctx); ctx.P.forEach(p=>{const n=p.words.filter(w=>!Object.hasOwn(ctx.W,w.toLowerCase())).length; console.log(p.id, n+"/"+p.words.length)})'`
+    — also re-run this (and the collision check two bullets up) after any future word-list edit,
+    since removing a word can silently orphan its `WORD_PICTURES` entry or shift the ratio.
 - **Missed-letter reveal**: on loss, `renderHangmanWord()` fills in the unguessed letters in place
   (class `.missed`) instead of only naming the word in the result text — letters you *did* find keep
   the normal `.revealed` style, so you can see what you got right. `.missed` uses `text-decoration:

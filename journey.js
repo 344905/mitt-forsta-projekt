@@ -156,9 +156,12 @@ const WORD_PICTURES = {
   giraff: "🦒", elefant: "🐘", känguru: "🦘", panda: "🐼", tiger: "🐅",
   lejon: "🦁", apa: "🐒",
 
-  // Dinosaurieplaneten
+  // Dinosaurieplaneten — "stor"/"liten"/"svans"/"jätte" saknar en
+  // rimlig egen bild (rena storleksord, eller inget bra emoji finns) och
+  // faller därför tillbaka på planetens symbol, med flit.
   ägg: "🥚", ödla: "🦎", tänder: "🦷", museum: "🏛️", vulkan: "🌋",
-  meteor: "☄️", skelett: "💀", sten: "🪨",
+  meteor: "☄️", skelett: "💀", sten: "🪨", klor: "🐾", fossil: "🦴",
+  spår: "👣", grotta: "🕳️", hals: "🦒", vinge: "🐦", gap: "🐊",
 
   // Matplaneten
   äpple: "🍎", banan: "🍌", apelsin: "🍊", päron: "🍐", jordgubbe: "🍓",
@@ -167,22 +170,35 @@ const WORD_PICTURES = {
   potatis: "🥔", morot: "🥕", gurka: "🥒", tomat: "🍅", korv: "🌭",
   sallad: "🥗",
 
-  // Trafikplaneten
+  // Trafikplaneten — "hjul" och "rondell" saknar en bra bild (för nya
+  // för de gamla emoji-versionerna vi håller oss till, respektive inget
+  // eget emoji finns) och faller tillbaka på planetens symbol.
   bil: "🚗", buss: "🚌", tåg: "🚆", cykel: "🚲", moped: "🛵",
   lastbil: "🚚", taxi: "🚕", flygplan: "✈️", båt: "⛵", skepp: "🚢",
   bro: "🌉", stopp: "🛑", skylt: "🪧", hjälm: "⛑️", parkering: "🅿️",
+  väg: "🛣️", gata: "🏙️", tunnel: "🚇", lykta: "💡", korsning: "🚸",
 
-  // Skolplaneten
+  // Skolplaneten — "tavla"/"bord"/"sudd"/"rast" saknar ett bra eget
+  // emoji och faller tillbaka på planetens symbol.
   skola: "🏫", penna: "✏️", linjal: "📏", bok: "📖", häfte: "📓",
-  ryggsäck: "🎒", stol: "🪑",
+  ryggsäck: "🎒", stol: "🪑", lärare: "🧑‍🏫", elev: "🧑‍🎓",
+  lektion: "📚", matte: "🔢", svenska: "🇸🇪", idrott: "⚽",
+  kompis: "🧑‍🤝‍🧑", fröken: "🍎", läxa: "📝",
 
   // Sportplaneten — "boll" och "fotboll" delar annars samma bild; boll
   // faller tillbaka på planetens symbol istället för en gissad egen bild.
+  // "arena" faller också tillbaka med flit — planetens symbol (🏟️) ÄR en
+  // arena, så det är en korrekt bild där, inte en missvisande gissning.
   mål: "🥅", fotboll: "⚽", hockey: "🏒", simning: "🏊",
   löpning: "🏃", cykling: "🚴", tennis: "🎾", skidor: "⛷️",
-  skridskor: "⛸️", medalj: "🏅", seger: "🏆",
+  skridskor: "⛸️", medalj: "🏅", seger: "🏆", lag: "👥",
+  domare: "🧑‍⚖️", match: "🆚", tränare: "📢", publik: "🙌",
+  träning: "🏋️",
 
-  // Robotplaneten
+  // Robotplaneten — "motor" faller tillbaka med flit, samma resonemang
+  // som "arena" på Sportplaneten (planetens symbol ⚙️ är själv en
+  // mekanisk del, en korrekt bild, inte en gissning). "fjärrkontroll"
+  // saknar ett bra eget emoji.
   robot: "🤖", skruv: "🔩", batteri: "🔋", kabel: "🔌", knapp: "🔘",
   skärm: "🖥️", lampa: "💡", raket: "🚀", rymdskepp: "🛸",
   astronaut: "🧑‍🚀", planet: "🪐", måne: "🌙", stjärna: "⭐",
@@ -191,10 +207,11 @@ const WORD_PICTURES = {
   satellit: "🛰️", dator: "💻",
 
   // Havsplaneten — "hav" och "våg" delar annars samma bild; våg faller
-  // tillbaka på planetens symbol.
+  // tillbaka på planetens symbol. "sjöstjärna"/"korall"/"sand" saknar
+  // ett bra eget emoji (eller är för nytt — 🪸 för korall kom 2021).
   hav: "🌊", krabba: "🦀", bläckfisk: "🐙", val: "🐋",
   delfin: "🐬", haj: "🦈", säl: "🦭", mussla: "🐚", strand: "🏖️",
-  simma: "🏊", snorkel: "🤿",
+  simma: "🏊", snorkel: "🤿", alger: "🌿", brygga: "⚓",
 
   // Väderplaneten
   sol: "☀️", regn: "🌧️", snö: "❄️", moln: "☁️", vind: "💨",
@@ -202,19 +219,26 @@ const WORD_PICTURES = {
   kyla: "🥶", värme: "🥵", paraply: "☔", stövlar: "👢",
   regnbåge: "🌈",
 
-  // Kroppsplaneten
+  // Kroppsplaneten — "mage"/"tå"/"rygg"/"knä" saknar ett bra eget emoji.
   öga: "👁️", öra: "👂", näsa: "👃", mun: "👄", tand: "🦷", arm: "💪",
-  hand: "✋", finger: "☝️", ben: "🦵", fot: "🦶",
+  hand: "✋", finger: "☝️", ben: "🦵", fot: "🦶", huvud: "🎩",
+  hår: "💇", hals: "🦒", axel: "🤷",
 
-  // Naturplaneten — "eld" och "lägereld" delar annars samma bild;
-  // lägereld faller tillbaka på planetens symbol.
+  // Naturplaneten — "eld" och "lägereld" delade annars samma bild;
+  // lägereld har nu en egen (🏕️, campingtema). "gren"/"rot"/"bäck"/
+  // "mossa"/"kotte" saknar ett bra eget emoji.
   träd: "🌳", skog: "🌲", blomma: "🌼", gräs: "🌿", löv: "🍃",
-  berg: "⛰️", svamp: "🍄", bär: "🍓", eld: "🔥",
+  berg: "⛰️", svamp: "🍄", bär: "🍓", eld: "🔥", sjö: "🏞️",
+  lägereld: "🏕️", stig: "🥾",
 
   // Musikplaneten — "sång" och "mikrofon" delar annars samma bild; sång
   // faller tillbaka på planetens symbol (🎵 passar den bra ändå).
+  // "flöjt"/"tamburin" saknar ett bra emoji i den gamla emoji-versionen
+  // vi håller oss till (flöjt/tamburin-emoji kom först 2021).
   gitarr: "🎸", trumma: "🥁", piano: "🎹", fiol: "🎻",
   mikrofon: "🎤", högtalare: "🔊", dans: "💃", trumpet: "🎺",
+  scen: "🎭", konsert: "🎫", orkester: "🎼", kör: "👥",
+  musiker: "🧑‍🎤",
 };
 
 // Bilden till bildkortet för ett givet ord: ordets egen bild om den finns,
